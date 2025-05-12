@@ -1,0 +1,39 @@
+# Binaries
+*.exe
+*.out
+*.app
+*.bin
+
+# Go build artifacts
+/bin/
+/pkg/
+*.a
+
+# Go modules
+go.sum
+go.work
+go.work.sum
+
+# IDE/editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs & temp files
+*.log
+*.tmp
+*.cache
+*.DS_Store
+
+# Coverage reports
+coverage.out
+
+# environment
+.env.development
+.env.production
+
+# another folders
+cdn/
+dist/
+build/

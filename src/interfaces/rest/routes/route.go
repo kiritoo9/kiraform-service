@@ -1,14 +1,13 @@
 package routes
 
 import (
-	"net/http"
+	authroute "kiraform/src/interfaces/rest/routes/auths"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
 func Routes(e *echo.Echo, DB *gorm.DB) {
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, echo!")
-	})
+	api := e.Group("/api")
+	authroute.NewHTTP(api, DB)
 }

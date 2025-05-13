@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -14,6 +15,12 @@ func Users(DB *gorm.DB, roleID uuid.UUID) error {
 	}
 
 	for _, data := range users {
+		hashed, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		data.Password = string(hashed)
+
 		if err := DB.FirstOrCreate(&data, models.Users{UserIdentity: data.UserIdentity}).Error; err != nil {
 			return err
 		} else {

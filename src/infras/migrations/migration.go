@@ -10,11 +10,16 @@ import (
 
 func Migrate(DB *gorm.DB) {
 	err := DB.AutoMigrate(
-		&models.Users{},
-		&models.Roles{},
+		&models.Users{}, &models.UserProfiles{},
+		&models.Roles{}, &models.Packages{},
+		&models.UserRoles{}, &models.UserPackages{},
+		&models.Workspaces{}, &models.Campaigns{}, &models.Forms{},
+		&models.CampaignSeos{}, &models.CampaignForms{}, &models.CampaignFormAttributes{},
+		&models.CampaignFormEntries{},
+		&models.Billings{}, &models.BillingDetails{},
 	)
 	if err != nil {
-		log.Fatal("Error while migrating database: %v", err)
+		log.Fatal(fmt.Printf("Error while migrating database: %v", err))
 	}
 	fmt.Println("Database successfully migrated!")
 }

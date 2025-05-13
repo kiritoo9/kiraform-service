@@ -72,5 +72,5 @@ Have questions, suggestions, or ideas? Feel free to open an issue or join our di
 ---
 
 ## 📄 Version
-App Version 0.0.1
+App Version 0.0.1<br />
 Architecture Version 1.1

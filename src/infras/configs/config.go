@@ -13,6 +13,7 @@ type Config struct {
 	APP_NAME  string
 	APP_PORT  string
 	MIGRATION bool
+	SEEDER    bool
 
 	DB_HOST string
 	DB_USER string
@@ -44,10 +45,20 @@ func Environment() Config {
 		}
 	}
 
+	SEEDER := false
+	envSeeder := os.Getenv("SEEDER")
+	if envSeeder != "" {
+		s, err := strconv.ParseBool(envSeeder)
+		if err == nil {
+			SEEDER = s
+		}
+	}
+
 	return Config{
 		APP_NAME:  os.Getenv("APP_NAME"),
 		APP_PORT:  os.Getenv("APP_PORT"),
 		MIGRATION: MIGRATION,
+		SEEDER:    SEEDER,
 
 		DB_HOST: os.Getenv("DB_HOST"),
 		DB_USER: os.Getenv("DB_USER"),

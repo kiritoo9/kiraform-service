@@ -21,6 +21,11 @@ func Connection(config Config) *gorm.DB {
 		migrations.Migrate(DB)
 	}
 
+	// start seeding data
+	if config.SEEDER {
+		migrations.Seeder(DB)
+	}
+
 	// send db to global connection
 	return DB
 }

@@ -9,6 +9,19 @@ definitions:
     - email
     - password
     type: object
+  authschema.RegisterPayload:
+    properties:
+      email:
+        type: string
+      fullname:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - fullname
+    - password
+    type: object
 info:
   contact: {}
 paths:
@@ -39,7 +52,35 @@ paths:
       - BearerAuth: []
       summary: Login
       tags:
-      - Auth - Login
+      - Authentication
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: You can regist new user here
+      parameters:
+      - description: Register credentials
+        in: body
+        name: registerPayload
+        required: true
+        schema:
+          $ref: '#/definitions/authschema.RegisterPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registration success
+          schema:
+            type: string
+        "400":
+          description: Registration failure
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Registration
+      tags:
+      - Authentication
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer " followed by a space and JWT token.

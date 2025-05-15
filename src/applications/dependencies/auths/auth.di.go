@@ -1,7 +1,7 @@
 package authdi
 
 import (
-	userrepo "kiraform/src/applications/repos/masters"
+	repomasters "kiraform/src/applications/repos/masters"
 	authusecase "kiraform/src/applications/usecases/auths"
 
 	"gorm.io/gorm"
@@ -9,16 +9,17 @@ import (
 
 type Dependencies struct {
 	DB *gorm.DB
-	UC authusecase.Usecase
+	UC authusecase.AuthUsecase
 }
 
 func NewDependencies(DB *gorm.DB) *Dependencies {
 	// load necessary repositories
 	// it possible to more than one
-	userRepo := userrepo.NewRepository(DB)
+	userRepo := repomasters.NewUserRepository(DB)
+	roleRepo := repomasters.NewRoleRepository(DB)
 
 	// load the usecase and inject into Dependency
-	authUC := authusecase.NewUsecase(userRepo)
+	authUC := authusecase.NewAuthUsecase(userRepo, roleRepo)
 	return &Dependencies{
 		DB: DB,
 		UC: authUC,

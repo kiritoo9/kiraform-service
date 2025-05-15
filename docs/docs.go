@@ -30,7 +30,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth - Login"
+                    "Authentication"
                 ],
                 "summary": "Login",
                 "parameters": [
@@ -59,6 +59,51 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/register": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "You can regist new user here",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Registration",
+                "parameters": [
+                    {
+                        "description": "Register credentials",
+                        "name": "registerPayload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/authschema.RegisterPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Registration success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Registration failure",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -70,6 +115,25 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "authschema.RegisterPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "fullname",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullname": {
                     "type": "string"
                 },
                 "password": {

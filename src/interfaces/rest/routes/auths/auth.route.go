@@ -29,13 +29,15 @@ func NewHTTP(g *echo.Group, DB *gorm.DB) {
 	validate := validator.New()
 	h := NewHandler(DB, validate, *authdi.NewDependencies(DB))
 
+	// define endpoints
 	g.POST("/login", h.Login)
+	g.POST("/register", h.Register)
 }
 
 // @Security BearerAuth
 // @Summary      Login
 // @Description  User login
-// @Tags         Auth - Login
+// @Tags         Authentication
 // @Accept       json
 // @Produce      json
 // @Param        loginPayload  body      authschema.LoginPayload   true  "Login credentials"
@@ -65,5 +67,36 @@ func (h *Handler) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{
 		"access_token":  signedToken,
 		"refresh_token": signedToken,
+	})
+}
+
+// @Security BearerAuth
+// @Summary      Registration
+// @Description  You can regist new user here
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        registerPayload  body      authschema.RegisterPayload   true  "Register credentials"
+// @Success      200  {string} string "Registration success"
+// @Failure      400  {string} string "Registration failure"
+// @Router       /api/register [post]
+func (h *Handler) Register(c echo.Context) error {
+	var body authschema.RegisterPayload
+
+	if err := c.Bind(&body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid JSON")
+	}
+
+	if err := h.Validator.Struct(body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	msg, err := h.Dependencies.UC.Register(body)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"message": msg,
 	})
 }

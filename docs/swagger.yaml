@@ -1,0 +1,49 @@
+definitions:
+  authschema.LoginPayload:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+info:
+  contact: {}
+paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: User login
+      parameters:
+      - description: Login credentials
+        in: body
+        name: loginPayload
+        required: true
+        schema:
+          $ref: '#/definitions/authschema.LoginPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login success
+          schema:
+            type: string
+        "400":
+          description: Login failure
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Login
+      tags:
+      - Auth - Login
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer " followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

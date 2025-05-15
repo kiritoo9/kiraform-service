@@ -12,6 +12,7 @@ import (
 type Config struct {
 	APP_NAME  string
 	APP_PORT  string
+	APP_ENV   string
 	MIGRATION bool
 	SEEDER    bool
 
@@ -54,9 +55,16 @@ func Environment() Config {
 		}
 	}
 
+	APP_ENV := "dev" // default
+	envApp := os.Getenv("APP_ENV")
+	if envApp != "" {
+		APP_ENV = envApp
+	}
+
 	return Config{
 		APP_NAME:  os.Getenv("APP_NAME"),
 		APP_PORT:  os.Getenv("APP_PORT"),
+		APP_ENV:   APP_ENV,
 		MIGRATION: MIGRATION,
 		SEEDER:    SEEDER,
 

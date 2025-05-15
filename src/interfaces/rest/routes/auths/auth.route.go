@@ -1,6 +1,7 @@
 package authroute
 
 import (
+	"errors"
 	authdi "kiraform/src/applications/dependencies/auths"
 	authschema "kiraform/src/interfaces/rest/schemas/auths"
 	"net/http"
@@ -31,24 +32,38 @@ func NewHTTP(g *echo.Group, DB *gorm.DB) {
 	g.POST("/login", h.Login)
 }
 
+// @Security BearerAuth
+// @Summary      Login
+// @Description  User login
+// @Tags         Auth - Login
+// @Accept       json
+// @Produce      json
+// @Param        loginPayload  body      authschema.LoginPayload   true  "Login credentials"
+// @Success      200  {string} string "Login success"
+// @Failure      400  {string} string "Login failure"
+// @Router       /api/login [post]
 func (h *Handler) Login(c echo.Context) error {
 	var body authschema.LoginPayload
 
-	// bind body
 	if err := c.Bind(&body); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid JSON")
 	}
 
-	// validate struct
 	if err := h.Validator.Struct(body); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	// call usecase
-	err := h.Dependencies.UC.Login(body)
+	signedToken, err := h.Dependencies.UC.Login(body)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		} else {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
 	}
 
-	return c.JSON(http.StatusOK, body)
+	return c.JSON(http.StatusOK, map[string]any{
+		"access_token":  signedToken,
+		"refresh_token": signedToken,
+	})
 }

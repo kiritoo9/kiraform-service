@@ -1,4 +1,4 @@
-package repomasters
+package masterrepo
 
 import (
 	"kiraform/src/applications/models"

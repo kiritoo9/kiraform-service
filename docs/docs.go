@@ -17,11 +17,6 @@ const docTemplate = `{
     "paths": {
         "/api/login": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "User login",
                 "consumes": [
                     "application/json"
@@ -48,13 +43,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Login success",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
                         }
                     },
                     "400": {
                         "description": "Login failure",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
                         }
                     }
                 }
@@ -62,11 +57,6 @@ const docTemplate = `{
         },
         "/api/register": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "You can regist new user here",
                 "consumes": [
                     "application/json"
@@ -93,13 +83,76 @@ const docTemplate = `{
                     "200": {
                         "description": "Registration success",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
                         }
                     },
                     "400": {
                         "description": "Registration failure",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/workspaces": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the list of workspaces you created",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Workspace"
+                ],
+                "summary": "List Workspaces",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page of list data",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limitting data you want to get",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Find your data with keywords",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "created_at:desc",
+                        "description": "Ordering data",
+                        "name": "orderBy",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
                         }
                     }
                 }
@@ -137,6 +190,19 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "commonschema.ResponseHTTP": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "error": {},
+                "message": {
                     "type": "string"
                 }
             }

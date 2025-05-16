@@ -22,6 +22,15 @@ definitions:
     - fullname
     - password
     type: object
+  commonschema.ResponseHTTP:
+    properties:
+      code:
+        type: integer
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -43,13 +52,11 @@ paths:
         "200":
           description: Login success
           schema:
-            type: string
+            $ref: '#/definitions/commonschema.ResponseHTTP'
         "400":
           description: Login failure
           schema:
-            type: string
-      security:
-      - BearerAuth: []
+            $ref: '#/definitions/commonschema.ResponseHTTP'
       summary: Login
       tags:
       - Authentication
@@ -71,16 +78,55 @@ paths:
         "200":
           description: Registration success
           schema:
-            type: string
+            $ref: '#/definitions/commonschema.ResponseHTTP'
         "400":
           description: Registration failure
           schema:
-            type: string
-      security:
-      - BearerAuth: []
+            $ref: '#/definitions/commonschema.ResponseHTTP'
       summary: Registration
       tags:
       - Authentication
+  /api/workspaces:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of workspaces you created
+      parameters:
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      - description: Ordering data
+        example: created_at:desc
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: List Workspaces
+      tags:
+      - Master - Workspace
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer " followed by a space and JWT token.

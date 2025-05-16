@@ -4,6 +4,7 @@ import (
 	"errors"
 	authdi "kiraform/src/applications/dependencies/auths"
 	authschema "kiraform/src/interfaces/rest/schemas/auths"
+	commonschema "kiraform/src/interfaces/rest/schemas/commons"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -11,40 +12,39 @@ import (
 	"gorm.io/gorm"
 )
 
-type Handler struct {
+type AuthHandler struct {
 	DB           *gorm.DB
 	Validator    *validator.Validate
-	Dependencies authdi.Dependencies
+	Dependencies authdi.AuthDependencies
 }
 
-func NewHandler(DB *gorm.DB, validate *validator.Validate, dependencies authdi.Dependencies) *Handler {
-	return &Handler{
+func NewAuthHandler(DB *gorm.DB, validator *validator.Validate, dependencies authdi.AuthDependencies) *AuthHandler {
+	return &AuthHandler{
 		DB:           DB,
-		Validator:    validate,
+		Validator:    validator,
 		Dependencies: dependencies,
 	}
 }
 
-func NewHTTP(g *echo.Group, DB *gorm.DB) {
-	validate := validator.New()
-	h := NewHandler(DB, validate, *authdi.NewDependencies(DB))
+func NewAuthHTTP(g *echo.Group, DB *gorm.DB) {
+	validator := validator.New()
+	h := NewAuthHandler(DB, validator, *authdi.NewAuthDependencies(DB))
 
 	// define endpoints
 	g.POST("/login", h.Login)
 	g.POST("/register", h.Register)
 }
 
-// @Security BearerAuth
 // @Summary      Login
 // @Description  User login
 // @Tags         Authentication
 // @Accept       json
 // @Produce      json
 // @Param        loginPayload  body      authschema.LoginPayload   true  "Login credentials"
-// @Success      200  {string} string "Login success"
-// @Failure      400  {string} string "Login failure"
+// @Success      200  {object} commonschema.ResponseHTTP "Login success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Login failure"
 // @Router       /api/login [post]
-func (h *Handler) Login(c echo.Context) error {
+func (h *AuthHandler) Login(c echo.Context) error {
 	var body authschema.LoginPayload
 
 	if err := c.Bind(&body); err != nil {
@@ -64,23 +64,28 @@ func (h *Handler) Login(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"access_token":  signedToken,
-		"refresh_token": signedToken,
-	})
+	// send response
+	response := commonschema.ResponseHTTP{
+		Code:    http.StatusOK,
+		Message: "Login success",
+		Data: map[string]any{
+			"access_token":  signedToken,
+			"refresh_token": signedToken,
+		},
+	}
+	return c.JSON(response.Code, response)
 }
 
-// @Security BearerAuth
 // @Summary      Registration
 // @Description  You can regist new user here
 // @Tags         Authentication
 // @Accept       json
 // @Produce      json
 // @Param        registerPayload  body      authschema.RegisterPayload   true  "Register credentials"
-// @Success      200  {string} string "Registration success"
-// @Failure      400  {string} string "Registration failure"
+// @Success      200  {object} commonschema.ResponseHTTP "Registration success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Registration failure"
 // @Router       /api/register [post]
-func (h *Handler) Register(c echo.Context) error {
+func (h *AuthHandler) Register(c echo.Context) error {
 	var body authschema.RegisterPayload
 
 	if err := c.Bind(&body); err != nil {
@@ -96,7 +101,10 @@ func (h *Handler) Register(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"message": msg,
-	})
+	// send response
+	response := commonschema.ResponseHTTP{
+		Code:    http.StatusCreated,
+		Message: *msg,
+	}
+	return c.JSON(response.Code, response)
 }

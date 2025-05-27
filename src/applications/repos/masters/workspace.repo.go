@@ -10,7 +10,7 @@ import (
 
 type WorkspaceRepository interface {
 	FindWorkspaces(params *commonschema.QueryParams) ([]models.Workspaces, error)
-	FindCountWorkspaces(params *commonschema.QueryParams) (int64, error)
+	FindCountWorkspace(params *commonschema.QueryParams) (int64, error)
 	FindWorkspaceByID(ID string) (*models.Workspaces, error)
 	CreateWorkspace(data models.Workspaces) error
 	UpdateWorkspace(ID string, data models.Workspaces) error
@@ -58,7 +58,7 @@ func (q *WorkspaceQuery) FindWorkspaces(params *commonschema.QueryParams) ([]mod
 	return workspaces, nil
 }
 
-func (q *WorkspaceQuery) FindCountWorkspaces(params *commonschema.QueryParams) (int64, error) {
+func (q *WorkspaceQuery) FindCountWorkspace(params *commonschema.QueryParams) (int64, error) {
 	var count int64
 
 	// preparing conditions

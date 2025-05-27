@@ -48,6 +48,52 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/campaigns/{workspace_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of campaigns you created
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      - description: Ordering data
+        example: created_at:desc
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: List Campaigns
+      tags:
+      - Master - Campaign
   /api/login:
     post:
       consumes:

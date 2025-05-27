@@ -4,6 +4,7 @@ import (
 	"errors"
 	"kiraform/src/applications/models"
 	repomasters "kiraform/src/applications/repos/masters"
+	"kiraform/src/infras/configs"
 	authschema "kiraform/src/interfaces/rest/schemas/auths"
 	"strings"
 	"time"
@@ -64,7 +65,7 @@ func (s *AuthService) Login(body authschema.LoginPayload) (*string, error) {
 		claims[k] = v
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	key := []byte("mykey")
+	key := []byte(configs.Environment().SECRET_KEY)
 	signedToken, err := token.SignedString(key)
 	if err != nil {
 		return nil, err

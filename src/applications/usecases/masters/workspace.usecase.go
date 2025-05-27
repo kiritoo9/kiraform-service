@@ -45,7 +45,7 @@ func (s *WorkspaceService) FindWorkspaces(params *commonschema.QueryParams) (*co
 	}
 
 	// get count data
-	count, err := s.workspaceRepo.FindCountWorkspaces(params)
+	count, err := s.workspaceRepo.FindCountWorkspace(params)
 	if err != nil {
 		return nil, err
 	}

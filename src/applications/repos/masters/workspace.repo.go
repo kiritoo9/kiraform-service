@@ -11,6 +11,9 @@ import (
 type WorkspaceRepository interface {
 	FindWorkspaces(params *commonschema.QueryParams) ([]models.Workspaces, error)
 	FindCountWorkspaces(params *commonschema.QueryParams) (int64, error)
+	FindWorkspaceByID(ID string) (*models.Workspaces, error)
+	CreateWorkspace(data models.Workspaces) error
+	UpdateWorkspace(ID string, data models.Workspaces) error
 }
 
 type WorkspaceQuery struct {
@@ -71,4 +74,29 @@ func (q *WorkspaceQuery) FindCountWorkspaces(params *commonschema.QueryParams) (
 
 	// send back
 	return count, nil
+}
+
+func (q *WorkspaceQuery) FindWorkspaceByID(ID string) (*models.Workspaces, error) {
+	var workspace models.Workspaces
+
+	// preparing query
+	err := q.DB.Where("deleted = ? AND id = ?", false, ID).First(&workspace).Error
+	if err != nil {
+		return nil, err
+	}
+	return &workspace, nil
+}
+
+func (q *WorkspaceQuery) CreateWorkspace(data models.Workspaces) error {
+	if err := q.DB.Create(&data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *WorkspaceQuery) UpdateWorkspace(ID string, data models.Workspaces) error {
+	if err := q.DB.Model(&models.Workspaces{}).Where("id = ?", ID).Updates(&data).Error; err != nil {
+		return err
+	}
+	return nil
 }

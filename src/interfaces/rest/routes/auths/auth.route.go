@@ -55,6 +55,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
+	// call usecase for busines validation
 	signedToken, err := h.Dependencies.UC.Login(body)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -89,13 +90,14 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	var body authschema.RegisterPayload
 
 	if err := c.Bind(&body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid JSON")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid body")
 	}
 
 	if err := h.Validator.Struct(body); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
+	// call usecase for business validation
 	msg, err := h.Dependencies.UC.Register(body)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

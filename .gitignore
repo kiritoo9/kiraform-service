@@ -37,3 +37,4 @@ coverage.out
 cdn/
 dist/
 build/
+swagger_debug/

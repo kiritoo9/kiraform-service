@@ -31,6 +31,66 @@ definitions:
       message:
         type: string
     type: object
+  masterschema.CampaignFormAttributePayload:
+    properties:
+      id:
+        type: string
+      is_default:
+        default: false
+        type: boolean
+      label:
+        type: string
+      value:
+        type: string
+    required:
+    - label
+    - value
+    type: object
+  masterschema.CampaignFormPayload:
+    properties:
+      attributes:
+        items:
+          $ref: '#/definitions/masterschema.CampaignFormAttributePayload'
+        type: array
+      default_value:
+        type: string
+      description:
+        type: string
+      form_id:
+        type: string
+      id:
+        type: string
+      is_multiple:
+        default: false
+        type: boolean
+      is_required:
+        default: false
+        type: boolean
+      placeholder:
+        type: string
+      title:
+        type: string
+    required:
+    - form_id
+    - title
+    type: object
+  masterschema.CampaignPayload:
+    properties:
+      description:
+        type: string
+      forms:
+        items:
+          $ref: '#/definitions/masterschema.CampaignFormPayload'
+        type: array
+      is_publish:
+        default: false
+        type: boolean
+      title:
+        type: string
+    required:
+    - forms
+    - title
+    type: object
   masterschema.WorkspacePayload:
     properties:
       description:
@@ -92,6 +152,138 @@ paths:
       security:
       - BearerAuth: []
       summary: List Campaigns
+      tags:
+      - Master - Campaign
+    post:
+      consumes:
+      - application/json
+      description: Create new campaign data
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: campaign payload
+        in: body
+        name: campaignPayload
+        required: true
+        schema:
+          $ref: '#/definitions/masterschema.CampaignPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Create Campaign
+      tags:
+      - Master - Campaign
+  /api/campaigns/{workspace_id}/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete existing campaign data
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Delete Campaign
+      tags:
+      - Master - Campaign
+    get:
+      consumes:
+      - application/json
+      description: Get detail of campaigns you created
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detaiol Campaigns
+      tags:
+      - Master - Campaign
+    put:
+      consumes:
+      - application/json
+      description: Update existing campaign data
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Campaign payload
+        in: body
+        name: campaignPayload
+        required: true
+        schema:
+          $ref: '#/definitions/masterschema.CampaignPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Update Campaign
       tags:
       - Master - Campaign
   /api/login:

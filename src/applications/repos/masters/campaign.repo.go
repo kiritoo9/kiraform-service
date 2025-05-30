@@ -1,16 +1,24 @@
 package masterrepo
 
 import (
+	"fmt"
 	"kiraform/src/applications/models"
 	commonschema "kiraform/src/interfaces/rest/schemas/commons"
+	masterschema "kiraform/src/interfaces/rest/schemas/masters"
 	"strings"
 
 	"gorm.io/gorm"
 )
 
 type CampaignRepository interface {
-	FindCampaigns(workspaceID string, params *commonschema.QueryParams) ([]models.Campaigns, error)
+	FindCampaigns(workspaceID string, params *commonschema.QueryParams) ([]masterschema.CampaignSchema, error)
 	FindCountCampaign(workspaceID string, params *commonschema.QueryParams) (int64, error)
+	FindCampaign(workspaceID string, ID string) (*masterschema.CampaignSchema, error)
+	FindFormsByCampaign(campaignID string) ([]masterschema.CampaignFormSchema, error)
+	FindFormAttributes(campaignFormID string) ([]masterschema.CampaignFormAttributeSchemas, error)
+	CreateCampaign(campaign models.Campaigns, campaignForms []models.CampaignForms, campaignFormAttributes []models.CampaignFormAttributes) error
+	UpdateCampaign(ID string, campaign models.Campaigns) error
+	UpdateEntireCampaign(ID string, campaign models.Campaigns, campaignFormActions map[string][]models.CampaignForms) error
 }
 
 type CampaignQuery struct {
@@ -23,8 +31,8 @@ func NewCampaignRepository(DB *gorm.DB) *CampaignQuery {
 	}
 }
 
-func (q *CampaignQuery) FindCampaigns(workspaceID string, params *commonschema.QueryParams) ([]models.Campaigns, error) {
-	var campaigns []models.Campaigns
+func (q *CampaignQuery) FindCampaigns(workspaceID string, params *commonschema.QueryParams) ([]masterschema.CampaignSchema, error) {
+	var campaigns []masterschema.CampaignSchema
 
 	// define offset
 	offset := 0
@@ -33,7 +41,7 @@ func (q *CampaignQuery) FindCampaigns(workspaceID string, params *commonschema.Q
 	}
 
 	// define statemetns
-	st := q.DB.Model(&models.Campaigns{}).Where("deleted = ? AND workspace_id::TEXT = ?", false, workspaceID)
+	st := q.DB.Model(&models.Campaigns{}).Where("deleted = ? AND workspace_id::TEXT = ?", false, workspaceID).Select("id", "workspace_id", "title", "description", "is_publish", "created_at")
 
 	// add search condition
 	if params.Search != "" {
@@ -69,4 +77,124 @@ func (q *CampaignQuery) FindCountCampaign(workspaceID string, params *commonsche
 		return 0, err
 	}
 	return count, nil
+}
+
+func (q *CampaignQuery) FindCampaign(workspaceID string, ID string) (*masterschema.CampaignSchema, error) {
+	var campaign masterschema.CampaignSchema
+
+	// perform to query
+	st := q.DB.Model(&models.Campaigns{}).Where("deleted = ? AND workspace_id = ? and id = ?", false, workspaceID, ID)
+	if err := st.First(&campaign).Error; err != nil {
+		return nil, err
+	}
+	return &campaign, nil
+}
+
+func (q *CampaignQuery) FindFormsByCampaign(campaignID string) ([]masterschema.CampaignFormSchema, error) {
+	var campaignForms []masterschema.CampaignFormSchema
+
+	// perform to query
+	st := q.DB.Model(&models.CampaignForms{}).
+		Joins("JOIN forms ON forms.id = campaign_forms.form_id").
+		Select("campaign_forms.*", "forms.name AS form_name", "forms.code AS form_code").
+		Where("campaign_forms.deleted = ? AND campaign_forms.campaign_id = ?", false, campaignID)
+	st = st.Order("campaign_forms.created_at ASC")
+	if err := st.Find(&campaignForms).Error; err != nil {
+		return nil, err
+	}
+	return campaignForms, nil
+}
+
+func (q *CampaignQuery) FindFormAttributes(campaignFormID string) ([]masterschema.CampaignFormAttributeSchemas, error) {
+	var campaignFormAttributes []masterschema.CampaignFormAttributeSchemas
+
+	// perform query
+	st := q.DB.Model(&models.CampaignFormAttributes{}).Where("deleted = ? AND campaign_form_id = ?", false, campaignFormID)
+	st = st.Order("created_at ASC")
+	if err := st.Find(&campaignFormAttributes).Error; err != nil {
+		return nil, err
+	}
+	return campaignFormAttributes, nil
+}
+
+func (q *CampaignQuery) CreateCampaign(campaign models.Campaigns, campaignForms []models.CampaignForms, campaignFormAttributes []models.CampaignFormAttributes) error {
+	// insert all data using transaction [commit:rollback]
+	// to prevent error coming
+	err := q.DB.Transaction(func(tx *gorm.DB) error {
+		// insert campaign header
+		if err := tx.Create(&campaign).Error; err != nil {
+			return err
+		}
+
+		// insert campaign forms
+		if err := tx.Create(&campaignForms).Error; err != nil {
+			return err
+		}
+
+		//  insert campaign form attributes
+		if err := tx.Create(&campaignFormAttributes).Error; err != nil {
+			return err
+		}
+
+		return nil // flag as commit
+	})
+	if err != nil {
+		return err
+	}
+
+	// tell usecase if everything is OK
+	return nil
+}
+
+func (q *CampaignQuery) UpdateCampaign(ID string, campaign models.Campaigns) error {
+	if err := q.DB.Where("deleted = ? AND id = ?", false, ID).Updates(&campaign).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *CampaignQuery) UpdateEntireCampaign(ID string, campaign models.Campaigns, campaignFormActions map[string][]models.CampaignForms) error {
+	err := q.DB.Transaction(func(tx *gorm.DB) error {
+		// update campaign
+		if err := tx.Where("deleted = ? AND id = ?", false, ID).Updates(campaign).Error; err != nil {
+			return err
+		}
+
+		// action create new campaign form
+		if c, ok := campaignFormActions["create"]; ok {
+			for _, cv := range c {
+				if err := tx.Model(&models.CampaignForms{}).Create(&cv).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		// action update campaign form
+		if u, ok := campaignFormActions["update"]; ok {
+			for _, uv := range u {
+				if err := tx.Model(&models.CampaignForms{}).Where("id = ?", uv.ID).Updates(&uv).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		// action delete campaign form
+		if d, ok := campaignFormActions["delete"]; ok {
+			for _, dv := range d {
+				if err := tx.Model(&models.CampaignForms{}).Where("id = ?", dv.ID).Updates(&dv).Error; err != nil {
+					fmt.Println(err)
+					return err
+				}
+			}
+		}
+
+		// commit transaction
+		return nil
+	})
+	if err != nil {
+		return nil
+	}
+
+	// return success response
+	return nil
 }

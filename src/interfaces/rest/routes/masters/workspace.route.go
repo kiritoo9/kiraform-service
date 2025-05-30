@@ -42,7 +42,7 @@ func NewWorkspaceHTTP(g *echo.Group, DB *gorm.DB) {
 // @Security BearerAuth
 // @Summary      List Workspaces
 // @Description  Get the list of workspaces you created
-// @Tags         Master - Workspace
+// @Tags         Master - Workspaces
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 page query int true "Page of list data"
@@ -74,7 +74,7 @@ func (h *WorkspaceHandler) FindWorkspaces(c echo.Context) error {
 // @Security BearerAuth
 // @Summary      Detail Workspace
 // @Description  Get detail data of workspace you choose
-// @Tags         Master - Workspace
+// @Tags         Master - Workspaces
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 id path string true "ID of your data"
@@ -103,7 +103,7 @@ func (h *WorkspaceHandler) FindWorkspace(c echo.Context) error {
 // @Security BearerAuth
 // @Summary      Create Workspace
 // @Description  Create new workspace data
-// @Tags         Master - Workspace
+// @Tags         Master - Workspaces
 // @Accept  	 json
 // @Produce  	 json
 // @Param        workspacePayload  body      masterschema.WorkspacePayload   true  "Workspace payload"
@@ -138,7 +138,7 @@ func (h *WorkspaceHandler) CreateWorkspace(c echo.Context) error {
 // @Security BearerAuth
 // @Summary      Update Workspace
 // @Description  Update existing workspace data
-// @Tags         Master - Workspace
+// @Tags         Master - Workspaces
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 id path string true "ID of your data"
@@ -171,7 +171,7 @@ func (h *WorkspaceHandler) UpdateWorkspace(c echo.Context) error {
 // @Security BearerAuth
 // @Summary      Delete Workspace
 // @Description  Delete existing workspace data
-// @Tags         Master - Workspace
+// @Tags         Master - Workspaces
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 id path string true "ID of your data"

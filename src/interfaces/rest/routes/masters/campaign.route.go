@@ -37,12 +37,20 @@ func NewCampaignHTTP(g *echo.Group, DB *gorm.DB) {
 	w.POST("/:workspace_id", h.CreateCampaign)
 	w.PUT("/:workspace_id/:id", h.UpdateCampaign)
 	w.DELETE("/:workspace_id/:id", h.DeleteCampaign)
+
+	// for campaign seos
+	s := w.Group("/seos")
+	s.GET("/:campaign_id", h.FindCampaignSeos)
+	s.GET("/:campaign_id/:id", h.FindCampaignSeo)
+	s.POST("/:campaign_id", h.CreateCampaignSeo)
+	s.PUT("/:campaign_id/:id", h.UpdateCampaignSeo)
+	s.DELETE("/:campaign_id/:id", h.DeleteCampaignSeo)
 }
 
 // @Security BearerAuth
 // @Summary      List Campaigns
 // @Description  Get the list of campaigns you created
-// @Tags         Master - Campaign
+// @Tags         Master - Campaigns
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 workspace_id path string true "Workspace ID"
@@ -76,9 +84,9 @@ func (h *CampaignHandler) FindCampaigns(c echo.Context) error {
 }
 
 // @Security BearerAuth
-// @Summary      Detaiol Campaigns
+// @Summary      Detail Campaigns
 // @Description  Get detail of campaigns you created
-// @Tags         Master - Campaign
+// @Tags         Master - Campaigns
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 workspace_id path string true "Workspace ID"
@@ -126,7 +134,7 @@ func (h *CampaignHandler) FindCampaign(c echo.Context) error {
 // @Security BearerAuth
 // @Summary      Create Campaign
 // @Description  Create new campaign data
-// @Tags         Master - Campaign
+// @Tags         Master - Campaigns
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 workspace_id path string true "Workspace ID"
@@ -162,7 +170,7 @@ func (h *CampaignHandler) CreateCampaign(c echo.Context) error {
 // @Security BearerAuth
 // @Summary      Update Campaign
 // @Description  Update existing campaign data
-// @Tags         Master - Campaign
+// @Tags         Master - Campaigns
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 workspace_id path string true "Workspace ID"
@@ -197,7 +205,7 @@ func (h *CampaignHandler) UpdateCampaign(c echo.Context) error {
 // @Security BearerAuth
 // @Summary      Delete Campaign
 // @Description  Delete existing campaign data
-// @Tags         Master - Campaign
+// @Tags         Master - Campaigns
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 workspace_id path string true "Workspace ID"
@@ -211,6 +219,163 @@ func (h *CampaignHandler) DeleteCampaign(c echo.Context) error {
 
 	// send to usecase to do delete process
 	if err := h.Dependencies.UC.DeleteCampaign(workspaceID, ID); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return c.JSON(http.StatusNoContent, nil)
+}
+
+// @Security BearerAuth
+// @Summary      List SEO Campaign
+// @Description  Get the list of seo campaign you created
+// @Tags         Master - Campaign SEO
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 campaign_id path string true "Campaign ID"
+// @Param 		 page query int true "Page of list data"
+// @Param 		 limit query int true "Limitting data you want to get"
+// @Param 		 search query string false "Find your data with keywords"
+// @Param 		 orderBy query string false "Ordering data" example(created_at:desc)
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/campaigns/seos/{campaign_id} [get]
+func (h *CampaignHandler) FindCampaignSeos(c echo.Context) error {
+	campaignID := c.Param("campaign_id")
+	params := utils.QParams(c)
+	response := commonschema.ResponseHTTP{Code: http.StatusBadRequest}
+
+	// send to usecase to get data
+	list, err := h.Dependencies.UC.FindCampaignSeos(campaignID, params)
+	if err != nil {
+		response.Message = err.Error()
+		return c.JSON(response.Code, response)
+	}
+
+	// send response
+	response.Code = http.StatusOK
+	response.Message = "Request success"
+	response.Data = list
+	return c.JSON(response.Code, response)
+}
+
+// @Security BearerAuth
+// @Summary      Detail SEO Campaign
+// @Description  Get detail of seo campaign you created
+// @Tags         Master - Campaign SEO
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 campaign_id path string true "Campaign ID"
+// @Param 		 id path string true "ID of your data"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/campaigns/seos/{campaign_id}/{id} [get]
+func (h *CampaignHandler) FindCampaignSeo(c echo.Context) error {
+	// get paramters
+	campaignID := c.Param("campaign_id")
+	ID := c.Param("id")
+
+	// get existing data
+	campaignSeo, err := h.Dependencies.UC.FindCampaignSeoByID(campaignID, ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "Data is not found")
+	}
+
+	// send response
+	response := commonschema.ResponseHTTP{
+		Code:    http.StatusOK,
+		Message: "Request success",
+		Data:    campaignSeo,
+	}
+	return c.JSON(response.Code, response)
+}
+
+// @Security BearerAuth
+// @Summary      Create SEO Campaign
+// @Description  Create new seo campaign data
+// @Tags         Master - Campaign SEO
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 campaign_id path string true "Campaign ID"
+// @Param        campaignSeoPayload  body      masterschema.CampaignSeoPayload   true  "SEO campaign payload"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/campaigns/seos/{campaign_id} [post]
+func (h *CampaignHandler) CreateCampaignSeo(c echo.Context) error {
+	campaignID := c.Param("campaign_id")
+	var body masterschema.CampaignSeoPayload
+
+	if err := c.Bind(&body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid body payload")
+	}
+
+	if err := h.Validator.Struct(body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	// send to usecase for insert logic
+	err := h.Dependencies.UC.CreateCampaignSeo(campaignID, body)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	// send success response
+	return c.JSON(http.StatusCreated, commonschema.ResponseHTTP{
+		Code:    http.StatusCreated,
+		Message: "Data is successfully created",
+	})
+}
+
+// @Security BearerAuth
+// @Summary      Update SEO Campaign
+// @Description  Update existing seo campaign data
+// @Tags         Master - Campaign SEO
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 campaign_id path string true "Campaign ID"
+// @Param 		 id path string true "ID of your data"
+// @Param        campaignSeoPayload  body      masterschema.CampaignSeoPayload   true  "SEO campaign payload"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/campaigns/seos/{campaign_id}/{id} [put]
+func (h *CampaignHandler) UpdateCampaignSeo(c echo.Context) error {
+	// get payload and parameters
+	campaignID := c.Param("campaign_id")
+	ID := c.Param("id")
+	var body masterschema.CampaignSeoPayload
+
+	// check for valid body
+	if err := c.Bind(&body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid body payload")
+	}
+
+	if err := h.Validator.Struct(body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	// send to usecase for update logic
+	err := h.Dependencies.UC.UpdateCampaignSeo(campaignID, ID, body)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	return c.JSON(http.StatusNoContent, nil)
+}
+
+// @Security BearerAuth
+// @Summary      Delete SEO Campaign
+// @Description  Delete existing seo campaign data
+// @Tags         Master - Campaign SEO
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 campaign_id path string true "Campaign ID"
+// @Param 		 id path string true "ID of your data"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/campaigns/seos/{campaign_id}/{id} [delete]
+func (h *CampaignHandler) DeleteCampaignSeo(c echo.Context) error {
+	campaignID := c.Param("campaign_id")
+	ID := c.Param("id")
+
+	// send to usecase to do delete process
+	if err := h.Dependencies.UC.DeleteCampaignSeo(campaignID, ID); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusNoContent, nil)

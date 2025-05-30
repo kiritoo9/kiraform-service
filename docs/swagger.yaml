@@ -91,6 +91,15 @@ definitions:
     - forms
     - title
     type: object
+  masterschema.CampaignSeoPayload:
+    properties:
+      access_key:
+        type: string
+      event:
+        type: string
+      platform:
+        type: string
+    type: object
   masterschema.WorkspacePayload:
     properties:
       description:
@@ -153,7 +162,7 @@ paths:
       - BearerAuth: []
       summary: List Campaigns
       tags:
-      - Master - Campaign
+      - Master - Campaigns
     post:
       consumes:
       - application/json
@@ -185,7 +194,7 @@ paths:
       - BearerAuth: []
       summary: Create Campaign
       tags:
-      - Master - Campaign
+      - Master - Campaigns
   /api/campaigns/{workspace_id}/{id}:
     delete:
       consumes:
@@ -217,7 +226,7 @@ paths:
       - BearerAuth: []
       summary: Delete Campaign
       tags:
-      - Master - Campaign
+      - Master - Campaigns
     get:
       consumes:
       - application/json
@@ -246,9 +255,9 @@ paths:
             $ref: '#/definitions/commonschema.ResponseHTTP'
       security:
       - BearerAuth: []
-      summary: Detaiol Campaigns
+      summary: Detail Campaigns
       tags:
-      - Master - Campaign
+      - Master - Campaigns
     put:
       consumes:
       - application/json
@@ -285,7 +294,253 @@ paths:
       - BearerAuth: []
       summary: Update Campaign
       tags:
-      - Master - Campaign
+      - Master - Campaigns
+  /api/campaigns/seos/{campaign_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of seo campaign you created
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      - description: Ordering data
+        example: created_at:desc
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: List SEO Campaign
+      tags:
+      - Master - Campaign SEO
+    post:
+      consumes:
+      - application/json
+      description: Create new seo campaign data
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: SEO campaign payload
+        in: body
+        name: campaignSeoPayload
+        required: true
+        schema:
+          $ref: '#/definitions/masterschema.CampaignSeoPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Create SEO Campaign
+      tags:
+      - Master - Campaign SEO
+  /api/campaigns/seos/{campaign_id}/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete existing seo campaign data
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Delete SEO Campaign
+      tags:
+      - Master - Campaign SEO
+    get:
+      consumes:
+      - application/json
+      description: Get detail of seo campaign you created
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detail SEO Campaign
+      tags:
+      - Master - Campaign SEO
+    put:
+      consumes:
+      - application/json
+      description: Update existing seo campaign data
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: SEO campaign payload
+        in: body
+        name: campaignSeoPayload
+        required: true
+        schema:
+          $ref: '#/definitions/masterschema.CampaignSeoPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Update SEO Campaign
+      tags:
+      - Master - Campaign SEO
+  /api/forms:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of forms you created
+      parameters:
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      - description: Ordering data
+        example: created_at:desc
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: List Forms
+      tags:
+      - Master - Forms
+  /api/forms/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detail data of form you choose
+      parameters:
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detail Form
+      tags:
+      - Master - Forms
   /api/login:
     post:
       consumes:
@@ -378,7 +633,7 @@ paths:
       - BearerAuth: []
       summary: List Workspaces
       tags:
-      - Master - Workspace
+      - Master - Workspaces
     post:
       consumes:
       - application/json
@@ -405,7 +660,7 @@ paths:
       - BearerAuth: []
       summary: Create Workspace
       tags:
-      - Master - Workspace
+      - Master - Workspaces
   /api/workspaces/{id}:
     delete:
       consumes:
@@ -432,7 +687,7 @@ paths:
       - BearerAuth: []
       summary: Delete Workspace
       tags:
-      - Master - Workspace
+      - Master - Workspaces
     get:
       consumes:
       - application/json
@@ -458,7 +713,7 @@ paths:
       - BearerAuth: []
       summary: Detail Workspace
       tags:
-      - Master - Workspace
+      - Master - Workspaces
     put:
       consumes:
       - application/json
@@ -490,7 +745,7 @@ paths:
       - BearerAuth: []
       summary: Update Workspace
       tags:
-      - Master - Workspace
+      - Master - Workspaces
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer " followed by a space and JWT token.

@@ -13,12 +13,17 @@ import (
 type CampaignRepository interface {
 	FindCampaigns(workspaceID string, params *commonschema.QueryParams) ([]masterschema.CampaignSchema, error)
 	FindCountCampaign(workspaceID string, params *commonschema.QueryParams) (int64, error)
-	FindCampaign(workspaceID string, ID string) (*masterschema.CampaignSchema, error)
+	FindCampaignByID(workspaceID string, ID string) (*masterschema.CampaignSchema, error)
 	FindFormsByCampaign(campaignID string) ([]masterschema.CampaignFormSchema, error)
 	FindFormAttributes(campaignFormID string) ([]masterschema.CampaignFormAttributeSchemas, error)
 	CreateCampaign(campaign models.Campaigns, campaignForms []models.CampaignForms, campaignFormAttributes []models.CampaignFormAttributes) error
 	UpdateCampaign(ID string, campaign models.Campaigns) error
 	UpdateEntireCampaign(ID string, campaign models.Campaigns, campaignFormActions map[string][]models.CampaignForms) error
+	FindCampaignSeos(campaignID string, params *commonschema.QueryParams) ([]masterschema.CampaignSeoSchema, error)
+	FindCountCampaignSeo(campaignID string, params *commonschema.QueryParams) (int64, error)
+	FindCampaignSeoByID(campaignID string, ID string) (*masterschema.CampaignSeoSchema, error)
+	CreateCampaignSeo(body models.CampaignSeos) error
+	UpdateCampaignSeo(campaignID string, ID string, body models.CampaignSeos) error
 }
 
 type CampaignQuery struct {
@@ -79,7 +84,7 @@ func (q *CampaignQuery) FindCountCampaign(workspaceID string, params *commonsche
 	return count, nil
 }
 
-func (q *CampaignQuery) FindCampaign(workspaceID string, ID string) (*masterschema.CampaignSchema, error) {
+func (q *CampaignQuery) FindCampaignByID(workspaceID string, ID string) (*masterschema.CampaignSchema, error) {
 	var campaign masterschema.CampaignSchema
 
 	// perform to query
@@ -196,5 +201,78 @@ func (q *CampaignQuery) UpdateEntireCampaign(ID string, campaign models.Campaign
 	}
 
 	// return success response
+	return nil
+}
+
+func (q *CampaignQuery) FindCampaignSeos(campaignID string, params *commonschema.QueryParams) ([]masterschema.CampaignSeoSchema, error) {
+	var campaigns []masterschema.CampaignSeoSchema
+
+	// define offset
+	offset := 0
+	if params.Limit > 0 && params.Page > 0 {
+		offset = params.Limit * (params.Page - 1)
+	}
+
+	// define statemetns
+	st := q.DB.Model(&models.CampaignSeos{}).Where("deleted = ? AND campaign_id::TEXT = ?", false, campaignID)
+
+	// add search condition
+	if params.Search != "" {
+		st = st.Where("LOWER(title) LIKE ?", "%"+strings.ToLower(params.Search)+"%")
+	}
+
+	// add orderby
+	if params.OrderBy != "" {
+		st = st.Order(params.OrderBy)
+	}
+
+	// add limit:offset
+	st = st.Limit(params.Limit).Offset(offset)
+
+	// perform to get the data
+	if err := st.Find(&campaigns).Error; err != nil {
+		return nil, err
+	}
+	return campaigns, nil
+}
+
+func (q *CampaignQuery) FindCountCampaignSeo(campaignID string, params *commonschema.QueryParams) (int64, error) {
+	var count int64
+
+	// prepare condition
+	st := q.DB.Model(&models.CampaignSeos{}).Where("deleted = ? AND campaign_id::TEXT = ?", false, campaignID)
+	if params.Search != "" {
+		st = st.Where("LOWER(title) LIKE ?", "%"+strings.ToLower(params.Search)+"%")
+	}
+
+	// perform to get data
+	if err := st.Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (q *CampaignQuery) FindCampaignSeoByID(campaignID string, ID string) (*masterschema.CampaignSeoSchema, error) {
+	var campaign masterschema.CampaignSeoSchema
+
+	// perform to query
+	st := q.DB.Model(&models.CampaignSeos{}).Where("deleted = ? AND campaign_id = ? and id = ?", false, campaignID, ID)
+	if err := st.First(&campaign).Error; err != nil {
+		return nil, err
+	}
+	return &campaign, nil
+}
+
+func (q *CampaignQuery) CreateCampaignSeo(campaignSeo models.CampaignSeos) error {
+	if err := q.DB.Create(&campaignSeo).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *CampaignQuery) UpdateCampaignSeo(campaignID string, ID string, campaignSeo models.CampaignSeos) error {
+	if err := q.DB.Where("deleted = ? AND campaign_id = ? AND id = ?", false, campaignID, ID).Updates(&campaignSeo).Error; err != nil {
+		return err
+	}
 	return nil
 }

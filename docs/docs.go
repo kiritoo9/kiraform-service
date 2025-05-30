@@ -15,6 +15,281 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/campaigns/seos/{campaign_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the list of seo campaign you created",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Campaign SEO"
+                ],
+                "summary": "List SEO Campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page of list data",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limitting data you want to get",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Find your data with keywords",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "created_at:desc",
+                        "description": "Ordering data",
+                        "name": "orderBy",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create new seo campaign data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Campaign SEO"
+                ],
+                "summary": "Create SEO Campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "SEO campaign payload",
+                        "name": "campaignSeoPayload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/masterschema.CampaignSeoPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/campaigns/seos/{campaign_id}/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detail of seo campaign you created",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Campaign SEO"
+                ],
+                "summary": "Detail SEO Campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of your data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update existing seo campaign data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Campaign SEO"
+                ],
+                "summary": "Update SEO Campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of your data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "SEO campaign payload",
+                        "name": "campaignSeoPayload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/masterschema.CampaignSeoPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete existing seo campaign data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Campaign SEO"
+                ],
+                "summary": "Delete SEO Campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of your data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
         "/api/campaigns/{workspace_id}": {
             "get": {
                 "security": [
@@ -30,7 +305,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Campaign"
+                    "Master - Campaigns"
                 ],
                 "summary": "List Campaigns",
                 "parameters": [
@@ -98,7 +373,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Campaign"
+                    "Master - Campaigns"
                 ],
                 "summary": "Create Campaign",
                 "parameters": [
@@ -150,9 +425,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Campaign"
+                    "Master - Campaigns"
                 ],
-                "summary": "Detaiol Campaigns",
+                "summary": "Detail Campaigns",
                 "parameters": [
                     {
                         "type": "string",
@@ -198,7 +473,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Campaign"
+                    "Master - Campaigns"
                 ],
                 "summary": "Update Campaign",
                 "parameters": [
@@ -255,7 +530,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Campaign"
+                    "Master - Campaigns"
                 ],
                 "summary": "Delete Campaign",
                 "parameters": [
@@ -266,6 +541,112 @@ const docTemplate = `{
                         "in": "path",
                         "required": true
                     },
+                    {
+                        "type": "string",
+                        "description": "ID of your data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/forms": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the list of forms you created",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Forms"
+                ],
+                "summary": "List Forms",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page of list data",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limitting data you want to get",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Find your data with keywords",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "created_at:desc",
+                        "description": "Ordering data",
+                        "name": "orderBy",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/forms/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detail data of form you choose",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Forms"
+                ],
+                "summary": "Detail Form",
+                "parameters": [
                     {
                         "type": "string",
                         "description": "ID of your data",
@@ -385,7 +766,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Workspace"
+                    "Master - Workspaces"
                 ],
                 "summary": "List Workspaces",
                 "parameters": [
@@ -446,7 +827,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Workspace"
+                    "Master - Workspaces"
                 ],
                 "summary": "Create Workspace",
                 "parameters": [
@@ -491,7 +872,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Workspace"
+                    "Master - Workspaces"
                 ],
                 "summary": "Detail Workspace",
                 "parameters": [
@@ -532,7 +913,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Workspace"
+                    "Master - Workspaces"
                 ],
                 "summary": "Update Workspace",
                 "parameters": [
@@ -582,7 +963,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Master - Workspace"
+                    "Master - Workspaces"
                 ],
                 "summary": "Delete Workspace",
                 "parameters": [
@@ -743,6 +1124,20 @@ const docTemplate = `{
                     "default": false
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "masterschema.CampaignSeoPayload": {
+            "type": "object",
+            "properties": {
+                "access_key": {
+                    "type": "string"
+                },
+                "event": {
+                    "type": "string"
+                },
+                "platform": {
                     "type": "string"
                 }
             }

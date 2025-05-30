@@ -21,6 +21,7 @@ func Routes(e *echo.Echo, DB *gorm.DB) {
 	privateApi.Use(middlewares.VerifyToken)
 
 	// regist all secure routes
+	masterroute.NewFormHTTP(privateApi, DB)
 	masterroute.NewWorkspaceHTTP(privateApi, DB)
 	masterroute.NewCampaignHTTP(privateApi, DB)
 }

@@ -23,6 +23,11 @@ type CampaignUsecase interface {
 	CreateCampaign(workspaceID string, body masterschema.CampaignPayload) error
 	UpdateCampaign(workspaceID string, ID string, body masterschema.CampaignPayload) error
 	DeleteCampaign(workspaceID string, ID string) error
+	FindCampaignSeos(campaignID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
+	FindCampaignSeoByID(campaignID string, ID string) (*masterschema.CampaignSeoSchema, error)
+	CreateCampaignSeo(campaignID string, body masterschema.CampaignSeoPayload) error
+	UpdateCampaignSeo(campaignID string, ID string, body masterschema.CampaignSeoPayload) error
+	DeleteCampaignSeo(campaignID string, ID string) error
 }
 
 type CampaignService struct {
@@ -65,7 +70,7 @@ func (s *CampaignService) FindCampaigns(workspaceID string, params *commonschema
 }
 
 func (s *CampaignService) FindCampaign(workspaceID string, ID string) (*masterschema.DetailCampaignSchema, error) {
-	data, err := s.campaignRepo.FindCampaign(workspaceID, ID)
+	data, err := s.campaignRepo.FindCampaignByID(workspaceID, ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("records not found")
@@ -301,7 +306,7 @@ func (s *CampaignService) UpdateCampaign(workspaceID string, ID string, body mas
 
 func (s *CampaignService) DeleteCampaign(workspaceID string, ID string) error {
 	// check existing data
-	_, err := s.campaignRepo.FindCampaign(workspaceID, ID)
+	_, err := s.campaignRepo.FindCampaignByID(workspaceID, ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("record not found")
@@ -317,6 +322,88 @@ func (s *CampaignService) DeleteCampaign(workspaceID string, ID string) error {
 	}
 	err = s.campaignRepo.UpdateCampaign(ID, campaign)
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *CampaignService) FindCampaignSeos(campaignID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
+	response := commonschema.ResponseList{
+		Parameters: *params,
+		TotalPage:  1,
+		Rows:       nil,
+	}
+
+	// get list data
+	rows, err := s.campaignRepo.FindCampaignSeos(campaignID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// get count data
+	count, err := s.campaignRepo.FindCountCampaignSeo(campaignID, params)
+	if err != nil {
+		return nil, err
+	}
+	totalPage := 1
+	if count > 0 {
+		totalPage = int(math.Ceil(float64(int(count)) / float64(params.Limit)))
+	}
+
+	// send response
+	response.TotalPage = totalPage
+	response.Rows = rows
+	return &response, nil
+}
+
+func (s *CampaignService) FindCampaignSeoByID(campaignID string, ID string) (*masterschema.CampaignSeoSchema, error) {
+	data, err := s.campaignRepo.FindCampaignSeoByID(campaignID, ID)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (s *CampaignService) CreateCampaignSeo(campaignID string, body masterschema.CampaignSeoPayload) error {
+	UUIDcampaignID, err := uuid.Parse(campaignID)
+	if err != nil {
+		return err
+	}
+
+	campaignSeo := models.CampaignSeos{
+		ID:         uuid.New(),
+		CampaignID: UUIDcampaignID,
+		Platform:   body.Platform,
+		Event:      body.Event,
+		AccessKey:  body.AccessKey,
+	}
+	if err := s.campaignRepo.CreateCampaignSeo(campaignSeo); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *CampaignService) UpdateCampaignSeo(campaignID string, ID string, body masterschema.CampaignSeoPayload) error {
+	t := time.Now()
+	campaignSeo := models.CampaignSeos{
+		Platform:  body.Platform,
+		Event:     body.Event,
+		AccessKey: body.AccessKey,
+		UpdatedAt: &t,
+	}
+	if err := s.campaignRepo.UpdateCampaignSeo(campaignID, ID, campaignSeo); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *CampaignService) DeleteCampaignSeo(campaignID string, ID string) error {
+	t := time.Now()
+	campaignSeo := models.CampaignSeos{
+		Deleted:   true,
+		UpdatedAt: &t,
+	}
+	if err := s.campaignRepo.UpdateCampaignSeo(campaignID, ID, campaignSeo); err != nil {
 		return err
 	}
 	return nil

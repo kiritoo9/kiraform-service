@@ -1,6 +1,8 @@
 package masterusecase
 
 import (
+	"errors"
+	"fmt"
 	"kiraform/src/applications/models"
 	masterrepo "kiraform/src/applications/repos/masters"
 	commonschema "kiraform/src/interfaces/rest/schemas/commons"
@@ -11,27 +13,35 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
+	"gorm.io/gorm"
 )
 
 type WorkspaceUsecase interface {
-	FindWorkspaces(params *commonschema.QueryParams) (*commonschema.ResponseList, error)
+	FindWorkspaces(userID *string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
 	FindWorkspaceByID(ID string) (*models.Workspaces, error)
-	CreateWorkspace(body masterschema.WorkspacePayload) error
+	CreateWorkspace(userID string, body masterschema.WorkspacePayload) error
 	UpdateWorkspace(ID string, body masterschema.WorkspacePayload) error
 	DeleteWorkspace(ID string) error
+	FindWorkspaceUsers(workspaceID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
+	FindWorkspaceUserByID(workspaceID string, ID string) (*masterschema.WorkspaceUserSchema, error)
+	CreateWorkspaceUser(workspaceID string, body masterschema.WorkspaceUserPayload) error
+	UpdateWorkspaceUser(workspaceID string, ID string, body masterschema.WorkspaceUserUpdatePayload) error
+	DeleteWorkspaceUser(workspaceID string, ID string) error
 }
 
 type WorkspaceService struct {
 	workspaceRepo masterrepo.WorkspaceRepository
+	userRepo      masterrepo.UserRepository
 }
 
-func NewWorkspaceUsecase(workspaceRepo masterrepo.WorkspaceRepository) *WorkspaceService {
+func NewWorkspaceUsecase(workspaceRepo masterrepo.WorkspaceRepository, userRepo masterrepo.UserRepository) *WorkspaceService {
 	return &WorkspaceService{
 		workspaceRepo: workspaceRepo,
+		userRepo:      userRepo,
 	}
 }
 
-func (s *WorkspaceService) FindWorkspaces(params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
+func (s *WorkspaceService) FindWorkspaces(userID *string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
 	response := commonschema.ResponseList{
 		Parameters: *params,
 		TotalPage:  1,
@@ -39,13 +49,13 @@ func (s *WorkspaceService) FindWorkspaces(params *commonschema.QueryParams) (*co
 	}
 
 	// get list data
-	rows, err := s.workspaceRepo.FindWorkspaces(params)
+	rows, err := s.workspaceRepo.FindWorkspaces(userID, params)
 	if err != nil {
 		return nil, err
 	}
 
 	// get count data
-	count, err := s.workspaceRepo.FindCountWorkspace(params)
+	count, err := s.workspaceRepo.FindCountWorkspace(userID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +78,7 @@ func (s *WorkspaceService) FindWorkspaceByID(ID string) (*models.Workspaces, err
 	return data, nil
 }
 
-func (s *WorkspaceService) CreateWorkspace(body masterschema.WorkspacePayload) error {
+func (s *WorkspaceService) CreateWorkspace(userID string, body masterschema.WorkspacePayload) error {
 	// prepare data to insert
 	ID := uuid.New()
 	arrOfID := strings.Split(ID.String(), "-")
@@ -92,6 +102,20 @@ func (s *WorkspaceService) CreateWorkspace(body masterschema.WorkspacePayload) e
 	if err != nil {
 		return err
 	}
+
+	// prepare and insert workspace user
+	UUIDuserID, err := uuid.Parse(userID)
+	if err == nil {
+		wu := models.WorkspaceUsers{
+			ID:          uuid.New(),
+			UserID:      UUIDuserID,
+			WorkspaceID: ID,
+			Status:      "S5", // as an owner
+		}
+		_ = s.workspaceRepo.CreateWorkspaceUser(wu)
+	}
+
+	// set as success
 	return nil
 }
 
@@ -129,6 +153,176 @@ func (s *WorkspaceService) DeleteWorkspace(ID string) error {
 		UpdatedAt: &t,
 	}
 	err = s.workspaceRepo.UpdateWorkspace(ID, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *WorkspaceService) FindWorkspaceUsers(workspaceID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
+	response := commonschema.ResponseList{
+		Parameters: *params,
+		TotalPage:  1,
+		Rows:       nil,
+	}
+
+	// get list data
+	rows, err := s.workspaceRepo.FindWorkspaceUsers(workspaceID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// get count data
+	count, err := s.workspaceRepo.FindCountWorkspaceUser(workspaceID, params)
+	if err != nil {
+		return nil, err
+	}
+	totalPage := 1
+	if count > 0 {
+		totalPage = int(math.Ceil(float64(int(count)) / float64(params.Limit)))
+	}
+
+	// change value of status
+	for i, v := range rows {
+		status := strings.ToUpper(v.Status)
+		if status == "S1" {
+			rows[i].Status = "INVITED"
+		} else if status == "S2" {
+			rows[i].Status = "REQUESTED"
+		} else if status == "S3" {
+			rows[i].Status = "APPROVED"
+		} else if status == "S4" {
+			rows[i].Status = "REJECTED"
+		}
+	}
+
+	// send response
+	response.TotalPage = totalPage
+	response.Rows = rows
+	return &response, nil
+}
+
+func (s *WorkspaceService) FindWorkspaceUserByID(workspaceID string, ID string) (*masterschema.WorkspaceUserSchema, error) {
+	data, err := s.workspaceRepo.FindWorkspaceUserByID(workspaceID, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// change value of status
+	status := strings.ToUpper(data.Status)
+	if status == "S1" {
+		data.Status = "INVITED"
+	} else if status == "S2" {
+		data.Status = "REQUESTED"
+	} else if status == "S3" {
+		data.Status = "APPROVED"
+	} else if status == "S4" {
+		data.Status = "REJECTED"
+	}
+
+	// send response
+	return data, nil
+}
+
+func (s *WorkspaceService) CreateWorkspaceUser(workspaceID string, body masterschema.WorkspaceUserPayload) error {
+	// parse workspace id into uuid format
+	UUIDworkspaceID, err := uuid.Parse(workspaceID)
+	if err != nil {
+		return err
+	}
+
+	// check user available by email or ID
+	// priority check ID
+	isExists := false
+	var UUIDuserID uuid.UUID
+	if body.UserID != nil {
+		_, err := s.userRepo.FindUserByID(*body.UserID)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+		isExists = true
+
+		uid, err := uuid.Parse(*body.UserID)
+		if err != nil {
+			return err
+		}
+		UUIDuserID = uid
+	} else if body.UserEmail != nil {
+		u, err := s.userRepo.FindUserByEmail(*body.UserEmail)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+		isExists = true
+		UUIDuserID = u.ID
+	}
+
+	if !isExists {
+		return errors.New("user id or email is not found please try another user")
+	}
+
+	// check if user already registered in this workspace or not
+	wu, err := s.workspaceRepo.FindWorkspaceUserByUser(workspaceID, UUIDuserID.String())
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+	}
+	fmt.Println(wu)
+	if wu != nil {
+		return errors.New("this user already exists in this workspace")
+	}
+
+	// preparing data to insert
+	data := models.WorkspaceUsers{
+		ID:          uuid.New(),
+		WorkspaceID: UUIDworkspaceID,
+		UserID:      UUIDuserID,
+		Status:      body.Status,
+	}
+
+	// perform to insert data
+	err = s.workspaceRepo.CreateWorkspaceUser(data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *WorkspaceService) UpdateWorkspaceUser(workspaceID string, ID string, body masterschema.WorkspaceUserUpdatePayload) error {
+	// Only status that will updated in this section
+	// User cannot update user_id
+	t := time.Now()
+	data := models.WorkspaceUsers{
+		Status:    body.Status,
+		UpdatedAt: t,
+	}
+
+	// perform to update data
+	err := s.workspaceRepo.UpdateWorkspaceUser(workspaceID, ID, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *WorkspaceService) DeleteWorkspaceUser(workspaceID string, ID string) error {
+	// check existing data
+	_, err := s.FindWorkspaceUserByID(workspaceID, ID)
+	if err != nil {
+		return err
+	}
+
+	// start updating data
+	t := time.Now()
+	data := models.WorkspaceUsers{
+		Deleted:   true,
+		UpdatedAt: t,
+	}
+	err = s.workspaceRepo.UpdateWorkspaceUser(workspaceID, ID, data)
 	if err != nil {
 		return err
 	}

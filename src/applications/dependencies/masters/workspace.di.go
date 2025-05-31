@@ -13,8 +13,12 @@ type WorkspaceDependencies struct {
 }
 
 func NewWorkspaceDependencies(DB *gorm.DB) *WorkspaceDependencies {
+	// load repositories
 	workspaceRepo := masterrepo.NewWorkspaceRepository(DB)
-	UC := masterusecase.NewWorkspaceUsecase(workspaceRepo)
+	userRepo := masterrepo.NewUserRepository(DB)
+
+	// init dependencies
+	UC := masterusecase.NewWorkspaceUsecase(workspaceRepo, userRepo)
 	return &WorkspaceDependencies{
 		DB: DB,
 		UC: UC,

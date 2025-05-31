@@ -3,17 +3,25 @@ package masterrepo
 import (
 	"kiraform/src/applications/models"
 	commonschema "kiraform/src/interfaces/rest/schemas/commons"
+	masterschema "kiraform/src/interfaces/rest/schemas/masters"
 	"strings"
 
 	"gorm.io/gorm"
 )
 
 type WorkspaceRepository interface {
-	FindWorkspaces(params *commonschema.QueryParams) ([]models.Workspaces, error)
-	FindCountWorkspace(params *commonschema.QueryParams) (int64, error)
+	FindWorkspaces(userID *string, params *commonschema.QueryParams) ([]models.Workspaces, error)
+	FindCountWorkspace(userID *string, params *commonschema.QueryParams) (int64, error)
 	FindWorkspaceByID(ID string) (*models.Workspaces, error)
 	CreateWorkspace(data models.Workspaces) error
 	UpdateWorkspace(ID string, data models.Workspaces) error
+	FindWorkspaceUsers(workspaceID string, params *commonschema.QueryParams) ([]masterschema.WorkspaceUserSchema, error)
+	FindCountWorkspaceUser(workspaceID string, params *commonschema.QueryParams) (int64, error)
+	FindWorkspaceUserByID(workspaceID string, ID string) (*masterschema.WorkspaceUserSchema, error)
+	FindWorkspaceUserByUser(workspaceID string, userID string) (*masterschema.WorkspaceUserSchema, error)
+	FindWorkspaceUserByUserApproved(workspaceID string, userID string) (*masterschema.WorkspaceUserSchema, error)
+	CreateWorkspaceUser(data models.WorkspaceUsers) error
+	UpdateWorkspaceUser(workspaceID string, ID string, data models.WorkspaceUsers) error
 }
 
 type WorkspaceQuery struct {
@@ -24,7 +32,7 @@ func NewWorkspaceRepository(DB *gorm.DB) *WorkspaceQuery {
 	return &WorkspaceQuery{DB: DB}
 }
 
-func (q *WorkspaceQuery) FindWorkspaces(params *commonschema.QueryParams) ([]models.Workspaces, error) {
+func (q *WorkspaceQuery) FindWorkspaces(userID *string, params *commonschema.QueryParams) ([]models.Workspaces, error) {
 	var workspaces []models.Workspaces
 
 	// calculating offset
@@ -35,6 +43,9 @@ func (q *WorkspaceQuery) FindWorkspaces(params *commonschema.QueryParams) ([]mod
 
 	// define statments
 	st := q.DB.Model(&models.Workspaces{}).Where("deleted = ?", false)
+	if userID != nil {
+		st = st.Where("workspaces.id IN (SELECT workspace_id FROM workspace_users WHERE workspace_users.workspace_id = workspaces.id AND deleted = ? AND user_id = ?)", false, userID)
+	}
 
 	// add search condition
 	if params.Search != "" {
@@ -58,7 +69,7 @@ func (q *WorkspaceQuery) FindWorkspaces(params *commonschema.QueryParams) ([]mod
 	return workspaces, nil
 }
 
-func (q *WorkspaceQuery) FindCountWorkspace(params *commonschema.QueryParams) (int64, error) {
+func (q *WorkspaceQuery) FindCountWorkspace(userID *string, params *commonschema.QueryParams) (int64, error) {
 	var count int64
 
 	// preparing conditions
@@ -96,6 +107,122 @@ func (q *WorkspaceQuery) CreateWorkspace(data models.Workspaces) error {
 
 func (q *WorkspaceQuery) UpdateWorkspace(ID string, data models.Workspaces) error {
 	if err := q.DB.Model(&models.Workspaces{}).Where("id = ?", ID).Updates(&data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *WorkspaceQuery) FindWorkspaceUsers(workspaceID string, params *commonschema.QueryParams) ([]masterschema.WorkspaceUserSchema, error) {
+	var workspaces []masterschema.WorkspaceUserSchema
+
+	// calculating offset
+	offset := 0
+	if params.Limit > 0 && params.Page > 0 {
+		offset = params.Limit * (params.Page - 1)
+	}
+
+	// define statments
+	st := q.DB.Model(&models.WorkspaceUsers{}).Where("workspace_users.deleted = ? AND workspace_users.workspace_id = ?", false, workspaceID).
+		Select("workspace_users.*", "users.email AS user_email", "users.fullname AS user_name", "workspaces.title AS workspace_title").
+		Joins("JOIN users ON users.id = workspace_users.user_id").
+		Joins("JOIN workspaces ON workspaces.id = workspace_users.workspace_id")
+
+	// add search condition
+	if params.Search != "" {
+		st = st.Where("(LOWER(users.email) LIKE ? OR LOWER(users.fullname) LIKE ?)", "%"+strings.ToLower(params.Search)+"%", "%"+strings.ToLower(params.Search)+"%")
+	}
+
+	// add orderby
+	if params.OrderBy != "" {
+		st = st.Order(params.OrderBy)
+	}
+
+	// add limit:offset
+	st = st.Limit(params.Limit).Offset(offset)
+
+	// perform to get the data
+	if err := st.Find(&workspaces).Error; err != nil {
+		return nil, err
+	}
+
+	// send back
+	return workspaces, nil
+}
+
+func (q *WorkspaceQuery) FindCountWorkspaceUser(workspaceID string, params *commonschema.QueryParams) (int64, error) {
+	var count int64
+
+	// preparing conditions
+	st := q.DB.Model(&models.WorkspaceUsers{}).Where("workspace_users.deleted = ? AND workspace_users.workspace_id = ?", false, workspaceID).
+		Joins("JOIN users ON users.id = workspace_users.user_id")
+
+	if params.Search != "" {
+		st = st.Where("(LOWER(users.email) LIKE ? OR LOWER(users.fullname) LIKE ?)", "%"+strings.ToLower(params.Search)+"%", "%"+strings.ToLower(params.Search)+"%")
+	}
+
+	// perform to get data
+	if err := st.Count(&count).Error; err != nil {
+		return 0, err
+	}
+
+	// send back
+	return count, nil
+}
+
+func (q *WorkspaceQuery) FindWorkspaceUserByID(workspaceID string, ID string) (*masterschema.WorkspaceUserSchema, error) {
+	var workspaceUser masterschema.WorkspaceUserSchema
+
+	// preparing query
+	err := q.DB.Model(&models.WorkspaceUsers{}).Where("workspace_users.deleted = ? AND workspace_users.workspace_id = ? AND workspace_users.id = ?", false, workspaceID, ID).
+		Select("workspace_users.*", "users.email AS user_email", "users.fullname AS user_name", "workspaces.title AS workspace_title").
+		Joins("JOIN users ON users.id = workspace_users.user_id").
+		Joins("JOIN workspaces ON workspaces.id = workspace_users.workspace_id").
+		First(&workspaceUser).Error
+	if err != nil {
+		return nil, err
+	}
+	return &workspaceUser, nil
+}
+
+func (q *WorkspaceQuery) FindWorkspaceUserByUser(workspaceID string, userID string) (*masterschema.WorkspaceUserSchema, error) {
+	var workspaceUser masterschema.WorkspaceUserSchema
+
+	// preparing query
+	err := q.DB.Model(&models.WorkspaceUsers{}).Where("workspace_users.deleted = ? AND workspace_users.workspace_id = ? AND workspace_users.user_id = ?", false, workspaceID, userID).
+		Select("workspace_users.*", "users.email AS user_email", "users.fullname AS user_name", "workspaces.title AS workspace_title").
+		Joins("JOIN users ON users.id = workspace_users.user_id").
+		Joins("JOIN workspaces ON workspaces.id = workspace_users.workspace_id").
+		First(&workspaceUser).Error
+	if err != nil {
+		return nil, err
+	}
+	return &workspaceUser, nil
+}
+
+func (q *WorkspaceQuery) FindWorkspaceUserByUserApproved(workspaceID string, userID string) (*masterschema.WorkspaceUserSchema, error) {
+	var workspaceUser masterschema.WorkspaceUserSchema
+
+	// preparing query
+	err := q.DB.Model(&models.WorkspaceUsers{}).Where("workspace_users.deleted = ? AND workspace_users.workspace_id = ? AND workspace_users.user_id = ? AND workspace_users.status = ?", false, workspaceID, userID, "S3").
+		Select("workspace_users.*", "users.email AS user_email", "users.fullname AS user_name", "workspaces.title AS workspace_title").
+		Joins("JOIN users ON users.id = workspace_users.user_id").
+		Joins("JOIN workspaces ON workspaces.id = workspace_users.workspace_id").
+		First(&workspaceUser).Error
+	if err != nil {
+		return nil, err
+	}
+	return &workspaceUser, nil
+}
+
+func (q *WorkspaceQuery) CreateWorkspaceUser(data models.WorkspaceUsers) error {
+	if err := q.DB.Model(&models.WorkspaceUsers{}).Create(&data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *WorkspaceQuery) UpdateWorkspaceUser(workspaceID string, ID string, data models.WorkspaceUsers) error {
+	if err := q.DB.Model(&models.WorkspaceUsers{}).Where("workspace_id = ? AND id = ?", workspaceID, ID).Updates(&data).Error; err != nil {
 		return err
 	}
 	return nil

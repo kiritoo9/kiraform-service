@@ -15,6 +15,7 @@ func Migrate(DB *gorm.DB) {
 		&models.UserRoles{}, &models.UserPackages{},
 		&models.Workspaces{}, &models.Campaigns{}, &models.Forms{},
 		&models.CampaignSeos{}, &models.CampaignForms{}, &models.CampaignFormAttributes{},
+		&models.WorkspaceUsers{},
 		&models.CampaignFormEntries{},
 		&models.Billings{}, &models.BillingDetails{},
 	)

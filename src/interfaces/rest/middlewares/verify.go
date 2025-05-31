@@ -44,10 +44,10 @@ func VerifyToken(next echo.HandlerFunc) echo.HandlerFunc {
 		if claims, ok := decode.Claims.(jwt.MapClaims); ok && decode.Valid {
 			for key, val := range claims {
 				if key == "id" {
-					// only push id into global state for now
-					// and convert it into user_id to prevent ambigous name
-					c.Set("user_id", fmt.Sprintf("%v", val))
+					// convert id as user id to prevent ambigous naming
+					key = "user_id"
 				}
+				c.Set(key, fmt.Sprintf("%v", val))
 			}
 		} else {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid access token")

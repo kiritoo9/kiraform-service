@@ -3,9 +3,9 @@ package masterschema
 import "time"
 
 type CampaignSeoPayload struct {
-	Platform  string `json:"platform"`
-	Event     string `json:"event"`
-	AccessKey string `json:"access_key"`
+	Platform  string `json:"platform" validate:"required"`
+	Event     string `json:"event" validate:"required"`
+	AccessKey string `json:"access_key" validate:"required"`
 }
 
 type CampaignSeoSchema struct {

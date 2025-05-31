@@ -99,6 +99,10 @@ definitions:
         type: string
       platform:
         type: string
+    required:
+    - access_key
+    - event
+    - platform
     type: object
   masterschema.WorkspacePayload:
     properties:
@@ -113,6 +117,28 @@ definitions:
         type: string
     required:
     - title
+    type: object
+  masterschema.WorkspaceUserPayload:
+    properties:
+      status:
+        default: S1
+        maxLength: 2
+        type: string
+      user_email:
+        type: string
+      user_id:
+        type: string
+    required:
+    - status
+    type: object
+  masterschema.WorkspaceUserUpdatePayload:
+    properties:
+      status:
+        default: S1
+        maxLength: 2
+        type: string
+    required:
+    - status
     type: object
 info:
   contact: {}
@@ -746,6 +772,184 @@ paths:
       summary: Update Workspace
       tags:
       - Master - Workspaces
+  /api/workspaces/users/{workspace_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of users available in this workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      - description: Ordering data
+        example: created_at:desc
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: List Workspace Users
+      tags:
+      - Master - Workspace Users
+    post:
+      consumes:
+      - application/json
+      description: Create new user for this workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: Workspace user payload
+        in: body
+        name: workspaceUserPayload
+        required: true
+        schema:
+          $ref: '#/definitions/masterschema.WorkspaceUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Create Workspace User
+      tags:
+      - Master - Workspace Users
+  /api/workspaces/users/{workspace_id}/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete existing user in this workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Delete Workspace User
+      tags:
+      - Master - Workspace Users
+    get:
+      consumes:
+      - application/json
+      description: Get detail data of workspace user you choose
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detail Workspace User
+      tags:
+      - Master - Workspace Users
+    put:
+      consumes:
+      - application/json
+      description: Update existing user in this workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Workspace user payload
+        in: body
+        name: workspaceUserUpdatePayload
+        required: true
+        schema:
+          $ref: '#/definitions/masterschema.WorkspaceUserUpdatePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Update Workspace User
+      tags:
+      - Master - Workspace Users
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer " followed by a space and JWT token.

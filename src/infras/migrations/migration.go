@@ -16,7 +16,7 @@ func Migrate(DB *gorm.DB) {
 		&models.Workspaces{}, &models.Campaigns{}, &models.Forms{},
 		&models.CampaignSeos{}, &models.CampaignForms{}, &models.CampaignFormAttributes{},
 		&models.WorkspaceUsers{},
-		&models.CampaignFormEntries{},
+		&models.FormEntries{}, &models.FormDetailEntries{},
 		&models.Billings{}, &models.BillingDetails{},
 	)
 	if err != nil {

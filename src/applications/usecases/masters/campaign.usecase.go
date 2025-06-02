@@ -18,6 +18,7 @@ import (
 type CampaignUsecase interface {
 	FindCampaigns(workspaceID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
 	FindCampaign(workspaceID string, ID string) (*masterschema.DetailCampaignSchema, error)
+	FindCampaignByKey(key string, isPublish *bool) (*masterschema.DetailCampaignSchema, error)
 	FindFormsByCampaign(campaignID string) ([]masterschema.DetailCampaignFormSchema, error)
 	FindFormAttributes(campaignFormID string) ([]masterschema.CampaignFormAttributeSchemas, error)
 	CreateCampaign(workspaceID string, body masterschema.CampaignPayload) error
@@ -82,6 +83,29 @@ func (s *CampaignService) FindCampaign(workspaceID string, ID string) (*mastersc
 		ID:          data.ID,
 		WorkspaceID: data.WorkspaceID,
 		Title:       data.Title,
+		Key:         data.Key,
+		Slug:        data.Slug,
+		Description: data.Description,
+		IsPublish:   data.IsPublish,
+		CreatedAt:   data.CreatedAt,
+	}, nil
+}
+
+func (s *CampaignService) FindCampaignByKey(key string, isPublish *bool) (*masterschema.DetailCampaignSchema, error) {
+	data, err := s.campaignRepo.FindCampaignByKey(key, isPublish)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("records not found")
+		} else {
+			return nil, err
+		}
+	}
+	return &masterschema.DetailCampaignSchema{
+		ID:          data.ID,
+		WorkspaceID: data.WorkspaceID,
+		Title:       data.Title,
+		Key:         data.Key,
+		Slug:        data.Slug,
 		Description: data.Description,
 		IsPublish:   data.IsPublish,
 		CreatedAt:   data.CreatedAt,

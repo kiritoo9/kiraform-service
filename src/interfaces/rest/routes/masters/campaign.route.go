@@ -31,15 +31,15 @@ func NewCampaignHTTP(g *echo.Group, DB *gorm.DB) {
 	h := NewCampaignHandler(DB, validator, *masterdi.NewCampaignDependencies(DB))
 
 	// define endpoints
-	w := g.Group("/campaigns")
-	w.GET("/:workspace_id", h.FindCampaigns)
-	w.GET("/:workspace_id/:id", h.FindCampaign)
-	w.POST("/:workspace_id", h.CreateCampaign)
-	w.PUT("/:workspace_id/:id", h.UpdateCampaign)
-	w.DELETE("/:workspace_id/:id", h.DeleteCampaign)
+	c := g.Group("/campaigns")
+	c.GET("/:workspace_id", h.FindCampaigns)
+	c.GET("/:workspace_id/:id", h.FindCampaign)
+	c.POST("/:workspace_id", h.CreateCampaign)
+	c.PUT("/:workspace_id/:id", h.UpdateCampaign)
+	c.DELETE("/:workspace_id/:id", h.DeleteCampaign)
 
 	// for campaign seos
-	s := w.Group("/seos")
+	s := c.Group("/seos")
 	s.GET("/:campaign_id", h.FindCampaignSeos)
 	s.GET("/:campaign_id/:id", h.FindCampaignSeo)
 	s.POST("/:campaign_id", h.CreateCampaignSeo)

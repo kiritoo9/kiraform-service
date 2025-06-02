@@ -554,6 +554,94 @@
                 }
             }
         },
+        "/api/form_entries/{campaign_id}": {
+            "post": {
+                "description": "Submit user value for this form",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction - Form Entry"
+                ],
+                "summary": "Form Entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "form entry payload",
+                        "name": "formEntryPayload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/masterschema.FormEntryPayload"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/form_entries/{campaign_key}": {
+            "get": {
+                "description": "Get detail form by key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction - Form Entry"
+                ],
+                "summary": "Preview Form",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "campaign key",
+                        "name": "campaign_key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
         "/api/forms": {
             "get": {
                 "security": [
@@ -1407,6 +1495,24 @@
                     "type": "string"
                 },
                 "platform": {
+                    "type": "string"
+                }
+            }
+        },
+        "masterschema.FormEntryPayload": {
+            "type": "object",
+            "required": [
+                "campaign_form_id"
+            ],
+            "properties": {
+                "campaign_form_attribute_id": {
+                    "type": "string",
+                    "default": "null"
+                },
+                "campaign_form_id": {
+                    "type": "string"
+                },
+                "value": {
                     "type": "string"
                 }
             }

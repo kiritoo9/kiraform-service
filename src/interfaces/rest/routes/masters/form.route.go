@@ -17,10 +17,10 @@ type FormHandler struct {
 	Dependencies masterdi.FormDependencies
 }
 
-func NewFormHandler(DB *gorm.DB, validate *validator.Validate, dependencies masterdi.FormDependencies) *FormHandler {
+func NewFormHandler(DB *gorm.DB, validator *validator.Validate, dependencies masterdi.FormDependencies) *FormHandler {
 	return &FormHandler{
 		DB:           DB,
-		Validator:    validate,
+		Validator:    validator,
 		Dependencies: dependencies,
 	}
 }
@@ -30,9 +30,9 @@ func NewFormHTTP(g *echo.Group, DB *gorm.DB) {
 	h := NewFormHandler(DB, validator, *masterdi.NewFormDependencies(DB))
 
 	// define endpoints
-	w := g.Group("/forms")
-	w.GET("", h.FindForms)
-	w.GET("/:id", h.FindForm)
+	f := g.Group("/forms")
+	f.GET("", h.FindForms)
+	f.GET("/:id", h.FindForm)
 }
 
 // @Security BearerAuth

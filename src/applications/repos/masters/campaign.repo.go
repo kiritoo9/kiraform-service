@@ -14,6 +14,7 @@ type CampaignRepository interface {
 	FindCampaigns(workspaceID string, params *commonschema.QueryParams) ([]masterschema.CampaignSchema, error)
 	FindCountCampaign(workspaceID string, params *commonschema.QueryParams) (int64, error)
 	FindCampaignByID(workspaceID string, ID string) (*masterschema.CampaignSchema, error)
+	FindCampaignByKey(key string, isPublish *bool) (*masterschema.CampaignSchema, error)
 	FindFormsByCampaign(campaignID string) ([]masterschema.CampaignFormSchema, error)
 	FindFormAttributes(campaignFormID string) ([]masterschema.CampaignFormAttributeSchemas, error)
 	CreateCampaign(campaign models.Campaigns, campaignForms []models.CampaignForms, campaignFormAttributes []models.CampaignFormAttributes) error
@@ -89,6 +90,21 @@ func (q *CampaignQuery) FindCampaignByID(workspaceID string, ID string) (*master
 
 	// perform to query
 	st := q.DB.Model(&models.Campaigns{}).Where("deleted = ? AND workspace_id = ? and id = ?", false, workspaceID, ID)
+	if err := st.First(&campaign).Error; err != nil {
+		return nil, err
+	}
+	return &campaign, nil
+}
+
+func (q *CampaignQuery) FindCampaignByKey(key string, isPublish *bool) (*masterschema.CampaignSchema, error) {
+	var campaign masterschema.CampaignSchema
+
+	// perform to query
+	st := q.DB.Model(&models.Campaigns{}).Where("deleted = ? AND key = ?", false, key)
+	if isPublish != nil {
+		st = st.Where("is_publish = ?", isPublish)
+	}
+
 	if err := st.First(&campaign).Error; err != nil {
 		return nil, err
 	}

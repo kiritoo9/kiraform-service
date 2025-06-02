@@ -13,11 +13,11 @@ func Routes(e *echo.Echo, DB *gorm.DB) {
 	// unauthorized endpoint
 	publicApi := e.Group("/api")
 	authroute.NewAuthHTTP(publicApi, DB)
+	masterroute.NewFormEntryHTTP(publicApi, DB)
 
-	// authorized endpoint
+	// re-define /api for authorized endpoint
+	// then regist middleware
 	privateApi := e.Group("/api")
-
-	// regist middlewares
 	privateApi.Use(middlewares.VerifyToken)
 
 	// regist all secure routes

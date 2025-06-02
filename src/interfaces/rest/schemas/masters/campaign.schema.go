@@ -17,6 +17,8 @@ type CampaignSchema struct {
 	ID          uuid.UUID  `json:"id"`
 	WorkspaceID string     `json:"workspace_id"`
 	Title       string     `json:"title"`
+	Key         string     `json:"key"`
+	Slug        string     `json:"slug"`
 	Description string     `json:"description"`
 	IsPublish   bool       `json:"is_publish"`
 	CreatedAt   *time.Time `json:"created_at"`
@@ -26,6 +28,8 @@ type DetailCampaignSchema struct {
 	ID          uuid.UUID                  `json:"id"`
 	WorkspaceID string                     `json:"workspace_id"`
 	Title       string                     `json:"title"`
+	Key         string                     `json:"key"`
+	Slug        string                     `json:"slug"`
 	Description string                     `json:"description"`
 	IsPublish   bool                       `json:"is_publish"`
 	CreatedAt   *time.Time                 `json:"created_at"`

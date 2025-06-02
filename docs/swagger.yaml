@@ -104,6 +104,18 @@ definitions:
     - event
     - platform
     type: object
+  masterschema.FormEntryPayload:
+    properties:
+      campaign_form_attribute_id:
+        default: "null"
+        type: string
+      campaign_form_id:
+        type: string
+      value:
+        type: string
+    required:
+    - campaign_form_id
+    type: object
   masterschema.WorkspacePayload:
     properties:
       description:
@@ -499,6 +511,64 @@ paths:
       summary: Update SEO Campaign
       tags:
       - Master - Campaign SEO
+  /api/form_entries/{campaign_id}:
+    post:
+      consumes:
+      - application/json
+      description: Submit user value for this form
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: form entry payload
+        in: body
+        name: formEntryPayload
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/masterschema.FormEntryPayload'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      summary: Form Entry
+      tags:
+      - Transaction - Form Entry
+  /api/form_entries/{campaign_key}:
+    get:
+      consumes:
+      - application/json
+      description: Get detail form by key
+      parameters:
+      - description: campaign key
+        in: path
+        name: campaign_key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      summary: Preview Form
+      tags:
+      - Transaction - Form Entry
   /api/forms:
     get:
       consumes:

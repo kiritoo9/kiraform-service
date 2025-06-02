@@ -6,6 +6,7 @@ import (
 	"kiraform/src/interfaces/rest/middlewares"
 	commonschema "kiraform/src/interfaces/rest/schemas/commons"
 	masterschema "kiraform/src/interfaces/rest/schemas/masters"
+	"kiraform/src/utils"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -131,10 +132,66 @@ func (h *FormEntryHandler) EntryForm(c echo.Context) error {
 	})
 }
 
+// @Security BearerAuth
+// @Summary      History of your entries
+// @Description  Get the list of history of your entries
+// @Tags         Transaction - Form Entry
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 page query int true "Page of list data"
+// @Param 		 limit query int true "Limitting data you want to get"
+// @Param 		 search query string false "Find your data with keywords"
+// @Param 		 orderBy query string false "Ordering data" example(created_at:desc)
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/form_entries/history [get]
 func (h *FormEntryHandler) GetHistory(c echo.Context) error {
-	return echo.NewHTTPError(http.StatusBadRequest, nil)
+	// get parameters
+	userID, ok := c.Get("user_id").(string)
+	if !ok {
+		return echo.NewHTTPError(http.StatusBadRequest, "Your account is not auhtorized yet")
+	}
+	params := utils.QParams(c)
+
+	// get history data
+	data, err := h.Dependencies.UC.GetHistory(userID, params)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	// send response
+	return c.JSON(http.StatusOK, data)
+
 }
 
+// @Security BearerAuth
+// @Summary      Detail entry
+// @Description  Get detail of your curren entry
+// @Tags         Transaction - Form Entry
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 id path string false "ID of your history"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/form_entries/history/{id} [get]
 func (h *FormEntryHandler) GetDetailHistory(c echo.Context) error {
-	return echo.NewHTTPError(http.StatusBadRequest, nil)
+	// get parameters
+	ID := c.Param("id")
+	userID, ok := c.Get("user_id").(string)
+	if !ok {
+		return echo.NewHTTPError(http.StatusBadRequest, "Your account is not auhtorized yet")
+	}
+
+	// get detail of history
+	data, err := h.Dependencies.UC.GetDetailHistory(userID, ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	// send response
+	return c.JSON(http.StatusOK, commonschema.ResponseHTTP{
+		Code:    http.StatusOK,
+		Message: "Request success",
+		Data:    data,
+	})
 }

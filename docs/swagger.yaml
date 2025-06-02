@@ -569,6 +569,73 @@ paths:
       summary: Preview Form
       tags:
       - Transaction - Form Entry
+  /api/form_entries/history:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of history of your entries
+      parameters:
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      - description: Ordering data
+        example: created_at:desc
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: History of your entries
+      tags:
+      - Transaction - Form Entry
+  /api/form_entries/history/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detail of your curren entry
+      parameters:
+      - description: ID of your history
+        in: path
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detail entry
+      tags:
+      - Transaction - Form Entry
   /api/forms:
     get:
       consumes:

@@ -565,6 +565,111 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/form_entries/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the list of history of your entries",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction - Form Entry"
+                ],
+                "summary": "History of your entries",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page of list data",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limitting data you want to get",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Find your data with keywords",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "created_at:desc",
+                        "description": "Ordering data",
+                        "name": "orderBy",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/form_entries/history/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detail of your curren entry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction - Form Entry"
+                ],
+                "summary": "Detail entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of your history",
+                        "name": "id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
         "/api/form_entries/{campaign_id}": {
             "post": {
                 "description": "Submit user value for this form",

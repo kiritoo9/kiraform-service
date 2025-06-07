@@ -152,6 +152,44 @@ definitions:
     required:
     - status
     type: object
+  meschema.ChangePasswordPayload:
+    properties:
+      confirm_password:
+        type: string
+      new_password:
+        type: string
+      old_password:
+        type: string
+    required:
+    - confirm_password
+    - new_password
+    - old_password
+    type: object
+  meschema.UserProfilePayload:
+    properties:
+      address:
+        type: string
+      avatar:
+        type: string
+      city:
+        type: string
+      district:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      middle_name:
+        type: string
+      phone:
+        type: string
+      province:
+        type: string
+      sub_district:
+        type: string
+    required:
+    - first_name
+    type: object
 info:
   contact: {}
 paths:
@@ -730,6 +768,79 @@ paths:
       summary: Login
       tags:
       - Authentication
+  /api/me:
+    get:
+      consumes:
+      - application/json
+      description: Get your profile detail
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Get Profile
+      tags:
+      - Me
+  /api/me/change_password:
+    put:
+      consumes:
+      - application/json
+      description: Change user password
+      parameters:
+      - description: Change password payload
+        in: body
+        name: changePasswordPayload
+        required: true
+        schema:
+          $ref: '#/definitions/meschema.ChangePasswordPayload'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Password changed
+        "400":
+          description: Failure to change password
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Change Password
+      tags:
+      - Me
+  /api/me/user_profile:
+    put:
+      consumes:
+      - application/json
+      description: Update your profile data
+      parameters:
+      - description: User profile payload
+        in: body
+        name: userProfilePayload
+        required: true
+        schema:
+          $ref: '#/definitions/meschema.UserProfilePayload'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Profile updated
+        "400":
+          description: Failure to update
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Update Profile
+      tags:
+      - Me
   /api/register:
     post:
       consumes:

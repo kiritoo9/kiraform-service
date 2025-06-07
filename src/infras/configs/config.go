@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -27,8 +28,11 @@ type Config struct {
 
 func Environment() Config {
 	env := os.Getenv("ENV")
+	APP_ENV := "dev" // default
 	if env == "" {
 		env = "development"
+	} else {
+		APP_ENV = strings.ToLower(env[0:3])
 	}
 
 	err := godotenv.Load(fmt.Sprintf(".env.%s", env))
@@ -53,12 +57,6 @@ func Environment() Config {
 		if err == nil {
 			SEEDER = s
 		}
-	}
-
-	APP_ENV := "dev" // default
-	envApp := os.Getenv("APP_ENV")
-	if envApp != "" {
-		APP_ENV = envApp
 	}
 
 	return Config{

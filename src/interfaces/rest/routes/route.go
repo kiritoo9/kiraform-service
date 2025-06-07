@@ -4,6 +4,7 @@ import (
 	"kiraform/src/interfaces/rest/middlewares"
 	authroute "kiraform/src/interfaces/rest/routes/auths"
 	masterroute "kiraform/src/interfaces/rest/routes/masters"
+	meroute "kiraform/src/interfaces/rest/routes/me"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -19,6 +20,9 @@ func Routes(e *echo.Echo, DB *gorm.DB) {
 	// then regist middleware
 	privateApi := e.Group("/api")
 	privateApi.Use(middlewares.VerifyToken)
+
+	// profile routes
+	meroute.NewMeHTTP(privateApi, DB)
 
 	// regist all secure routes
 	masterroute.NewFormHTTP(privateApi, DB)

@@ -35,7 +35,16 @@ cd kiraform-service
 # Install dependencies
 go mod tidy
 
+# Set local environment in your local machine
+export MIGRATION=true # to run migration
+export SEEDER=true # to run seeder
+
+export ENV=development # to run app as development (it also decided to choose .env.development file as environment)
+export ENV=production # to run app as production (same)
+
 # Set up environment variables (see .env.example)
+# you can create .env.development or .env.production file
+# otherwise it won't be read at all
 
 # Run the application
 go run src/entry/main.go

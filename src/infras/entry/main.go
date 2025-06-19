@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
 	_ "kiraform/docs"
@@ -17,6 +18,12 @@ func main() {
 	CONFIG := configs.Environment()
 	DB := configs.Connection(CONFIG)
 	e := echo.New()
+
+	// cors handler
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
+	}))
 
 	// load swagger only for development environment
 	if strings.ToLower(CONFIG.APP_ENV) == "dev" {

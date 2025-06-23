@@ -148,13 +148,17 @@ func (q *CampaignQuery) CreateCampaign(campaign models.Campaigns, campaignForms 
 		}
 
 		// insert campaign forms
-		if err := tx.Create(&campaignForms).Error; err != nil {
-			return err
+		if len(campaignForms) > 0 {
+			if err := tx.Create(&campaignForms).Error; err != nil {
+				return err
+			}
 		}
 
 		//  insert campaign form attributes
-		if err := tx.Create(&campaignFormAttributes).Error; err != nil {
-			return err
+		if len(campaignFormAttributes) > 0 {
+			if err := tx.Create(&campaignFormAttributes).Error; err != nil {
+				return err
+			}
 		}
 
 		return nil // flag as commit
@@ -182,29 +186,35 @@ func (q *CampaignQuery) UpdateEntireCampaign(ID string, campaign models.Campaign
 		}
 
 		// action create new campaign form
-		if c, ok := campaignFormActions["create"]; ok {
-			for _, cv := range c {
-				if err := tx.Model(&models.CampaignForms{}).Create(&cv).Error; err != nil {
-					return err
+		if len(campaignFormActions["create"]) > 0 {
+			if c, ok := campaignFormActions["create"]; ok {
+				for _, cv := range c {
+					if err := tx.Model(&models.CampaignForms{}).Create(&cv).Error; err != nil {
+						return err
+					}
 				}
 			}
 		}
 
 		// action update campaign form
-		if u, ok := campaignFormActions["update"]; ok {
-			for _, uv := range u {
-				if err := tx.Model(&models.CampaignForms{}).Where("id = ?", uv.ID).Updates(&uv).Error; err != nil {
-					return err
+		if len(campaignFormActions["update"]) > 0 {
+			if u, ok := campaignFormActions["update"]; ok {
+				for _, uv := range u {
+					if err := tx.Model(&models.CampaignForms{}).Where("id = ?", uv.ID).Updates(&uv).Error; err != nil {
+						return err
+					}
 				}
 			}
 		}
 
 		// action delete campaign form
-		if d, ok := campaignFormActions["delete"]; ok {
-			for _, dv := range d {
-				if err := tx.Model(&models.CampaignForms{}).Where("id = ?", dv.ID).Updates(&dv).Error; err != nil {
-					fmt.Println(err)
-					return err
+		if len(campaignFormActions["delete"]) > 0 {
+			if d, ok := campaignFormActions["delete"]; ok {
+				for _, dv := range d {
+					if err := tx.Model(&models.CampaignForms{}).Where("id = ?", dv.ID).Updates(&dv).Error; err != nil {
+						fmt.Println(err)
+						return err
+					}
 				}
 			}
 		}

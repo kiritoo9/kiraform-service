@@ -280,6 +280,7 @@ func (s *CampaignService) UpdateCampaign(workspaceID string, ID string, body mas
 	}
 
 	// perform to create and update data campaign form
+	var campaignFormAttributesCreate []models.CampaignFormAttributes
 	for _, v := range body.Forms {
 		formID, err := uuid.Parse(v.FormID)
 		if err != nil {
@@ -303,10 +304,67 @@ func (s *CampaignService) UpdateCampaign(workspaceID string, ID string, body mas
 			}
 			cf.ID = campaignFormID
 			campaignFormActions["update"] = append(campaignFormActions["update"], cf)
+
+			// check data for create or update attributes possibility
+			for _, j := range *v.Attributes {
+				fa := models.CampaignFormAttributes{
+					CampaignFormID: cf.ID,
+					Label:          j.Label,
+					Value:          j.Value,
+					IsDefault:      j.IsDefault,
+				}
+				if j.ID != nil {
+					err := s.campaignRepo.UpdateFormAttribute(fa, *j.ID)
+					if err != nil {
+						return nil
+					}
+				} else {
+					fa.ID = uuid.New()
+					err := s.campaignRepo.CreateFormAttribute(fa)
+					if err != nil {
+						return nil
+					}
+				}
+			}
+
+			// check for delete attribute possibility
+			existingFormAttributes, err := s.campaignRepo.FindFormAttributes(*v.ID)
+			if err != nil {
+				return err
+			}
+			for _, j := range existingFormAttributes {
+				isDelete := true
+				for _, k := range *v.Attributes {
+					if j.ID.String() == *k.ID {
+						isDelete = false
+						break
+					}
+				}
+				if isDelete {
+					err := s.campaignRepo.UpdateFormAttribute(models.CampaignFormAttributes{
+						Deleted: true,
+					}, j.ID.String())
+					if err != nil {
+						return nil
+					}
+				}
+			}
 		} else {
 			cf.ID = uuid.New()
 			cf.CampaignID = campaignID
 			campaignFormActions["create"] = append(campaignFormActions["create"], cf)
+
+			// appending data attributes for this form
+			for _, j := range *v.Attributes {
+				fa := models.CampaignFormAttributes{
+					ID:             uuid.New(),
+					CampaignFormID: cf.ID,
+					Label:          j.Label,
+					Value:          j.Value,
+					IsDefault:      j.IsDefault,
+				}
+				campaignFormAttributesCreate = append(campaignFormAttributesCreate, fa)
+			}
 		}
 	}
 
@@ -322,7 +380,7 @@ func (s *CampaignService) UpdateCampaign(workspaceID string, ID string, body mas
 	}
 
 	// perform to query for entire data
-	if err := s.campaignRepo.UpdateEntireCampaign(ID, campaign, campaignFormActions); err != nil {
+	if err := s.campaignRepo.UpdateEntireCampaign(ID, campaign, campaignFormActions, campaignFormAttributesCreate); err != nil {
 		return err
 	}
 	return nil

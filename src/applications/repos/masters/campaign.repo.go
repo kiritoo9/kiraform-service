@@ -19,12 +19,14 @@ type CampaignRepository interface {
 	FindFormAttributes(campaignFormID string) ([]masterschema.CampaignFormAttributeSchemas, error)
 	CreateCampaign(campaign models.Campaigns, campaignForms []models.CampaignForms, campaignFormAttributes []models.CampaignFormAttributes) error
 	UpdateCampaign(ID string, campaign models.Campaigns) error
-	UpdateEntireCampaign(ID string, campaign models.Campaigns, campaignFormActions map[string][]models.CampaignForms) error
+	UpdateEntireCampaign(ID string, campaign models.Campaigns, campaignFormActions map[string][]models.CampaignForms, campaignFormAttributesCreate []models.CampaignFormAttributes) error
 	FindCampaignSeos(campaignID string, params *commonschema.QueryParams) ([]masterschema.CampaignSeoSchema, error)
 	FindCountCampaignSeo(campaignID string, params *commonschema.QueryParams) (int64, error)
 	FindCampaignSeoByID(campaignID string, ID string) (*masterschema.CampaignSeoSchema, error)
 	CreateCampaignSeo(body models.CampaignSeos) error
 	UpdateCampaignSeo(campaignID string, ID string, body models.CampaignSeos) error
+	CreateFormAttribute(formAttribute models.CampaignFormAttributes) error
+	UpdateFormAttribute(formAttribute models.CampaignFormAttributes, ID string) error
 }
 
 type CampaignQuery struct {
@@ -178,7 +180,7 @@ func (q *CampaignQuery) UpdateCampaign(ID string, campaign models.Campaigns) err
 	return nil
 }
 
-func (q *CampaignQuery) UpdateEntireCampaign(ID string, campaign models.Campaigns, campaignFormActions map[string][]models.CampaignForms) error {
+func (q *CampaignQuery) UpdateEntireCampaign(ID string, campaign models.Campaigns, campaignFormActions map[string][]models.CampaignForms, campaignFormAttributesCreate []models.CampaignFormAttributes) error {
 	err := q.DB.Transaction(func(tx *gorm.DB) error {
 		// update campaign
 		if err := tx.Where("deleted = ? AND id = ?", false, ID).Updates(campaign).Error; err != nil {
@@ -216,6 +218,13 @@ func (q *CampaignQuery) UpdateEntireCampaign(ID string, campaign models.Campaign
 						return err
 					}
 				}
+			}
+		}
+
+		// action create attributes for new form
+		if len(campaignFormAttributesCreate) > 0 {
+			if err := tx.Model(&models.CampaignFormAttributes{}).Create(&campaignFormAttributesCreate).Error; err != nil {
+				return err
 			}
 		}
 
@@ -301,4 +310,26 @@ func (q *CampaignQuery) UpdateCampaignSeo(campaignID string, ID string, campaign
 		return err
 	}
 	return nil
+}
+
+func (q *CampaignQuery) CreateFormAttribute(formAttribute models.CampaignFormAttributes) error {
+	if err := q.DB.Model(&models.CampaignFormAttributes{}).Create(&formAttribute).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *CampaignQuery) UpdateFormAttribute(formAttribute models.CampaignFormAttributes, ID string) error {
+	if err := q.DB.Model(&models.CampaignFormAttributes{}).Where("id = ?", ID).Updates(&formAttribute).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *CampaignQuery) FindCampaignFormAttributes(campaignFormID string) ([]models.CampaignFormAttributes, error) {
+	var campaignFormAttributes []models.CampaignFormAttributes
+	if err := q.DB.Model(&models.CampaignFormAttributes{}).Where("deleted = ? AND campaign_form_id = ?", false, campaignFormID).Find(&campaignFormAttributes).Error; err != nil {
+		return nil, err
+	}
+	return campaignFormAttributes, nil
 }

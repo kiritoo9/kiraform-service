@@ -205,7 +205,7 @@ func (q *WorkspaceQuery) FindWorkspaceUserByUserApproved(workspaceID string, use
 	var workspaceUser masterschema.WorkspaceUserSchema
 
 	// preparing query
-	err := q.DB.Model(&models.WorkspaceUsers{}).Where("workspace_users.deleted = ? AND workspace_users.workspace_id = ? AND workspace_users.user_id = ? AND workspace_users.status = ?", false, workspaceID, userID, "S3").
+	err := q.DB.Model(&models.WorkspaceUsers{}).Where("workspace_users.deleted = ? AND workspace_users.workspace_id = ? AND workspace_users.user_id = ? AND workspace_users.status IN (?, ?)", false, workspaceID, userID, "S3", "S5").
 		Select("workspace_users.*", "users.email AS user_email", "users.fullname AS user_name", "workspaces.title AS workspace_title").
 		Joins("JOIN users ON users.id = workspace_users.user_id").
 		Joins("JOIN workspaces ON workspaces.id = workspace_users.workspace_id").

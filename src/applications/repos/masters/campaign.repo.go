@@ -401,7 +401,7 @@ func (q *CampaignQuery) FindFormEntries(workspaceID string, campaignID string, p
 	}
 
 	// add limit:offset
-	query += " LIMIT ? OFFSET ? "
+	query += " ORDER BY form_entries.created_at ASC LIMIT ? OFFSET ? "
 	args = append(args, params.Limit, offset)
 
 	// perform to get the data

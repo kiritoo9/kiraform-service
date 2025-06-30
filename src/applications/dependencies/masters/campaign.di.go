@@ -14,7 +14,8 @@ type CampaignDependencies struct {
 
 func NewCampaignDependencies(DB *gorm.DB) *CampaignDependencies {
 	campaignRepo := masterrepo.NewCampaignRepository(DB)
-	UC := masterusecase.NewCampaignUsecase(campaignRepo)
+	workspaceRepo := masterrepo.NewWorkspaceRepository(DB)
+	UC := masterusecase.NewCampaignUsecase(campaignRepo, workspaceRepo)
 	return &CampaignDependencies{
 		DB: DB,
 		UC: UC,

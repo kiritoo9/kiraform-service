@@ -17,10 +17,11 @@ func NewFormEntryDependencies(DB *gorm.DB) *FormEntryDependencies {
 	// load repositories
 	formEntryRepo := masterrepo.NewFormEntryRepository(DB)
 	campaignRepo := masterrepo.NewCampaignRepository(DB)
+	workspaceRepo := masterrepo.NewWorkspaceRepository(DB)
 
 	// load usecase
 	UC := masterusecase.NewFormEntryUsecase(formEntryRepo)
-	UCcampaign := masterusecase.NewCampaignUsecase(campaignRepo)
+	UCcampaign := masterusecase.NewCampaignUsecase(campaignRepo, workspaceRepo)
 	return &FormEntryDependencies{
 		DB:         DB,
 		UC:         UC,

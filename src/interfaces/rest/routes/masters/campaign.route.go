@@ -33,7 +33,8 @@ func NewCampaignHTTP(g *echo.Group, DB *gorm.DB) {
 	// define endpoints
 	c := g.Group("/campaigns")
 	c.GET("/:workspace_id", h.FindCampaigns)
-	c.GET("/:workspace_id/:id", h.FindCampaign)
+	c.GET("/dashboard/:workspace_id", h.CampaignDashboard)
+	c.GET("/detail/:workspace_id/:id", h.FindCampaign)
 	c.POST("/:workspace_id", h.CreateCampaign)
 	c.PUT("/:workspace_id/:id", h.UpdateCampaign)
 	c.DELETE("/:workspace_id/:id", h.DeleteCampaign)
@@ -93,9 +94,9 @@ func (h *CampaignHandler) FindCampaigns(c echo.Context) error {
 // @Param 		 id path string true "ID of your data"
 // @Success      200  {object} commonschema.ResponseHTTP "Request success"
 // @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
-// @Router       /api/campaigns/{workspace_id}/{id} [get]
+// @Router       /api/campaigns/detail/{workspace_id}/{id} [get]
 func (h *CampaignHandler) FindCampaign(c echo.Context) error {
-	// get paramters
+	// get parameters
 	workspaceID := c.Param("workspace_id")
 	ID := c.Param("id")
 
@@ -127,6 +128,35 @@ func (h *CampaignHandler) FindCampaign(c echo.Context) error {
 		Code:    http.StatusOK,
 		Message: "Request success",
 		Data:    campaign,
+	}
+	return c.JSON(response.Code, response)
+}
+
+// @Security BearerAuth
+// @Summary      Campaign Dashboard
+// @Description  Get summary data campaign for dashboard
+// @Tags         Master - Campaigns
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 workspace_id path string true "Workspace ID"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/campaigns/dashboard/{workspace_id} [get]
+func (h *CampaignHandler) CampaignDashboard(c echo.Context) error {
+	// get parameters
+	workspaceID := c.Param("workspace_id")
+
+	// get existing data
+	dashboard, err := h.Dependencies.UC.CampaignDashboard(workspaceID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "Data is not found")
+	}
+
+	// send response
+	response := commonschema.ResponseHTTP{
+		Code:    http.StatusOK,
+		Message: "Request success",
+		Data:    dashboard,
 	}
 	return c.JSON(response.Code, response)
 }
@@ -269,7 +299,7 @@ func (h *CampaignHandler) FindCampaignSeos(c echo.Context) error {
 // @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
 // @Router       /api/campaigns/seos/{campaign_id}/{id} [get]
 func (h *CampaignHandler) FindCampaignSeo(c echo.Context) error {
-	// get paramters
+	// get parameters
 	campaignID := c.Param("campaign_id")
 	ID := c.Param("id")
 

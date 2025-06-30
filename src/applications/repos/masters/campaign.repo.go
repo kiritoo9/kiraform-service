@@ -27,6 +27,7 @@ type CampaignRepository interface {
 	UpdateCampaignSeo(campaignID string, ID string, body models.CampaignSeos) error
 	CreateFormAttribute(formAttribute models.CampaignFormAttributes) error
 	UpdateFormAttribute(formAttribute models.CampaignFormAttributes, ID string) error
+	FindCountFormSubmissionByCampaign(campaignID string) (int64, error)
 }
 
 type CampaignQuery struct {
@@ -49,7 +50,7 @@ func (q *CampaignQuery) FindCampaigns(workspaceID string, params *commonschema.Q
 	}
 
 	// define statemetns
-	st := q.DB.Model(&models.Campaigns{}).Where("deleted = ? AND workspace_id::TEXT = ?", false, workspaceID).Select("id", "workspace_id", "title", "description", "is_publish", "created_at")
+	st := q.DB.Model(&models.Campaigns{}).Where("deleted = ? AND workspace_id::TEXT = ?", false, workspaceID).Select("id", "workspace_id", "title", "key", "slug", "description", "is_publish", "created_at")
 
 	// add search condition
 	if params.Search != "" {
@@ -332,4 +333,12 @@ func (q *CampaignQuery) FindCampaignFormAttributes(campaignFormID string) ([]mod
 		return nil, err
 	}
 	return campaignFormAttributes, nil
+}
+
+func (q *CampaignQuery) FindCountFormSubmissionByCampaign(campaignID string) (int64, error) {
+	var count int64
+	if err := q.DB.Model(&models.FormEntries{}).Where("deleted = ? AND campaign_id = ?", false, campaignID).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }

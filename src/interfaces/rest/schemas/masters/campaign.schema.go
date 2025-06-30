@@ -24,6 +24,19 @@ type CampaignSchema struct {
 	CreatedAt   *time.Time `json:"created_at"`
 }
 
+type CampaignSchemaWithSummary struct {
+	ID           uuid.UUID  `json:"id"`
+	WorkspaceID  string     `json:"workspace_id"`
+	Title        string     `json:"title"`
+	Key          string     `json:"key"`
+	Slug         string     `json:"slug"`
+	Description  string     `json:"description"`
+	IsPublish    bool       `json:"is_publish"`
+	TotalVisitor int64      `json:"total_visitor"`
+	TotalSubmit  int64      `json:"total_submit"`
+	CreatedAt    *time.Time `json:"created_at"`
+}
+
 type DetailCampaignSchema struct {
 	ID          uuid.UUID                  `json:"id"`
 	WorkspaceID string                     `json:"workspace_id"`
@@ -34,4 +47,9 @@ type DetailCampaignSchema struct {
 	IsPublish   bool                       `json:"is_publish"`
 	CreatedAt   *time.Time                 `json:"created_at"`
 	Forms       []DetailCampaignFormSchema `json:"forms"`
+}
+
+type CampaignDashboard struct {
+	TotalVisitor int64 `json:"total_visitor"`
+	TotalSubmit  int64 `json:"total_submit"`
 }

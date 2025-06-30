@@ -22,6 +22,8 @@ type WorkspaceRepository interface {
 	FindWorkspaceUserByUserApproved(workspaceID string, userID string) (*masterschema.WorkspaceUserSchema, error)
 	CreateWorkspaceUser(data models.WorkspaceUsers) error
 	UpdateWorkspaceUser(workspaceID string, ID string, data models.WorkspaceUsers) error
+	FindCountCampaignByWorkspace(workspaceID string) (int64, error)
+	FindCountFormSubmissionByWorkspace(workspaceID string) (int64, error)
 }
 
 type WorkspaceQuery struct {
@@ -226,4 +228,20 @@ func (q *WorkspaceQuery) UpdateWorkspaceUser(workspaceID string, ID string, data
 		return err
 	}
 	return nil
+}
+
+func (q *WorkspaceQuery) FindCountCampaignByWorkspace(workspaceID string) (int64, error) {
+	var count int64
+	if err := q.DB.Model(&models.Campaigns{}).Where("deleted = ? AND workspace_id = ?", false, workspaceID).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (q *WorkspaceQuery) FindCountFormSubmissionByWorkspace(workspaceID string) (int64, error) {
+	var count int64
+	if err := q.DB.Raw("SELECT COUNT(1) FROM form_entries JOIN campaigns ON campaigns.id = form_entries.campaign_id WHERE campaigns.deleted = ? AND form_entries.deleted = ? AND campaigns.workspace_id = ?", false, false, workspaceID).Scan(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }

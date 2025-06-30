@@ -54,6 +54,39 @@ func (s *WorkspaceService) FindWorkspaces(userID *string, params *commonschema.Q
 		return nil, err
 	}
 
+	// converting format data from []models.Workspaces -> []masterschema.WorkspaceList
+	var list []masterschema.WorkspaceList
+	for _, v := range rows {
+		// get total form from this workspace
+		var totalForm int64
+		countForm, err := s.workspaceRepo.FindCountCampaignByWorkspace(v.ID.String())
+		if err != nil {
+			return nil, err
+		}
+		totalForm = countForm
+
+		// get total form created from entire campaign in this workspace
+		var totalSubmit int64
+		countSubmit, err := s.workspaceRepo.FindCountFormSubmissionByWorkspace(v.ID.String())
+		if err != nil {
+			return nil, err
+		}
+		totalSubmit = countSubmit
+
+		// appending data
+		list = append(list, masterschema.WorkspaceList{
+			ID:          v.ID.String(),
+			Title:       v.Title,
+			Key:         v.Key,
+			Slug:        v.Slug,
+			Description: v.Description,
+			Thumbnail:   v.Thumbnail,
+			TotalForm:   totalForm,
+			TotalSubmit: totalSubmit,
+			CreatedAt:   v.CreatedAt,
+		})
+	}
+
 	// get count data
 	count, err := s.workspaceRepo.FindCountWorkspace(userID, params)
 	if err != nil {
@@ -66,7 +99,7 @@ func (s *WorkspaceService) FindWorkspaces(userID *string, params *commonschema.Q
 
 	// send response
 	response.TotalPage = totalPage
-	response.Rows = rows
+	response.Rows = list
 	return &response, nil
 }
 

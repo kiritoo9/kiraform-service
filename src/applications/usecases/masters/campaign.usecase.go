@@ -18,6 +18,7 @@ import (
 type CampaignUsecase interface {
 	FindCampaigns(workspaceID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
 	FindCampaign(workspaceID string, ID string) (*masterschema.DetailCampaignSchema, error)
+	CampaignDashboard(workspaceID string) (*masterschema.CampaignDashboard, error)
 	FindCampaignByKey(key string, isPublish *bool) (*masterschema.DetailCampaignSchema, error)
 	FindFormsByCampaign(campaignID string) ([]masterschema.DetailCampaignFormSchema, error)
 	FindFormAttributes(campaignFormID string) ([]masterschema.CampaignFormAttributeSchemas, error)
@@ -32,12 +33,14 @@ type CampaignUsecase interface {
 }
 
 type CampaignService struct {
-	campaignRepo masterrepo.CampaignRepository
+	campaignRepo  masterrepo.CampaignRepository
+	workspaceRepo masterrepo.WorkspaceRepository
 }
 
-func NewCampaignUsecase(campaignRepo masterrepo.CampaignRepository) *CampaignService {
+func NewCampaignUsecase(campaignRepo masterrepo.CampaignRepository, workspaceRepo masterrepo.WorkspaceRepository) *CampaignService {
 	return &CampaignService{
-		campaignRepo: campaignRepo,
+		campaignRepo:  campaignRepo,
+		workspaceRepo: workspaceRepo,
 	}
 }
 
@@ -54,6 +57,30 @@ func (s *CampaignService) FindCampaigns(workspaceID string, params *commonschema
 		return nil, err
 	}
 
+	// converting format data from []masterschema.CampaignSchema -> []masterschema.CampaignSchemaWithSummary
+	var list []masterschema.CampaignSchemaWithSummary
+	for _, v := range rows {
+		// get total submit for this campaign
+		countSubmit, err := s.campaignRepo.FindCountFormSubmissionByCampaign(v.ID.String())
+		if err != nil {
+			return nil, err
+		}
+
+		totalVisitor := float64(countSubmit) * 1.3 // static prediction visitor for now [mvp-purpose]
+		list = append(list, masterschema.CampaignSchemaWithSummary{
+			ID:           v.ID,
+			WorkspaceID:  v.WorkspaceID,
+			Title:        v.Title,
+			Key:          v.Key,
+			Slug:         v.Slug,
+			Description:  v.Description,
+			IsPublish:    v.IsPublish,
+			CreatedAt:    v.CreatedAt,
+			TotalVisitor: int64(totalVisitor),
+			TotalSubmit:  countSubmit,
+		})
+	}
+
 	// get count data
 	count, err := s.campaignRepo.FindCountCampaign(workspaceID, params)
 	if err != nil {
@@ -66,7 +93,7 @@ func (s *CampaignService) FindCampaigns(workspaceID string, params *commonschema
 
 	// send response
 	response.TotalPage = totalPage
-	response.Rows = rows
+	response.Rows = list
 	return &response, nil
 }
 
@@ -89,6 +116,22 @@ func (s *CampaignService) FindCampaign(workspaceID string, ID string) (*mastersc
 		IsPublish:   data.IsPublish,
 		CreatedAt:   data.CreatedAt,
 	}, nil
+}
+
+func (s *CampaignService) CampaignDashboard(workspaceID string) (*masterschema.CampaignDashboard, error) {
+	// get total submit for this campaign
+	countSubmit, err := s.workspaceRepo.FindCountFormSubmissionByWorkspace(workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	totalVisitor := float64(countSubmit) * 1.3 // static prediction visitor for now [mvp-purpose]
+
+	// prepare data and response
+	dashboard := masterschema.CampaignDashboard{
+		TotalVisitor: int64(totalVisitor),
+		TotalSubmit:  countSubmit,
+	}
+	return &dashboard, nil
 }
 
 func (s *CampaignService) FindCampaignByKey(key string, isPublish *bool) (*masterschema.DetailCampaignSchema, error) {

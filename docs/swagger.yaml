@@ -303,37 +303,6 @@ paths:
       summary: Delete Campaign
       tags:
       - Master - Campaigns
-    get:
-      consumes:
-      - application/json
-      description: Get detail of campaigns you created
-      parameters:
-      - description: Workspace ID
-        in: path
-        name: workspace_id
-        required: true
-        type: string
-      - description: ID of your data
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Request success
-          schema:
-            $ref: '#/definitions/commonschema.ResponseHTTP'
-        "400":
-          description: Request failure
-          schema:
-            $ref: '#/definitions/commonschema.ResponseHTTP'
-      security:
-      - BearerAuth: []
-      summary: Detail Campaigns
-      tags:
-      - Master - Campaigns
     put:
       consumes:
       - application/json
@@ -369,6 +338,65 @@ paths:
       security:
       - BearerAuth: []
       summary: Update Campaign
+      tags:
+      - Master - Campaigns
+  /api/campaigns/dashboard/{workspace_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get summary data campaign for dashboard
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Campaign Dashboard
+      tags:
+      - Master - Campaigns
+  /api/campaigns/detail/{workspace_id}/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detail of campaigns you created
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detail Campaigns
       tags:
       - Master - Campaigns
   /api/campaigns/seos/{campaign_id}:

@@ -30,6 +30,9 @@ type CampaignUsecase interface {
 	CreateCampaignSeo(campaignID string, body masterschema.CampaignSeoPayload) error
 	UpdateCampaignSeo(campaignID string, ID string, body masterschema.CampaignSeoPayload) error
 	DeleteCampaignSeo(campaignID string, ID string) error
+	FindSummaryEntriesByDate(workspaceID string, campaignID string) ([]masterschema.CampaignFormEntryChart, error)
+	FindFormEntries(workspaceID string, campaignID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
+	FindFormEntry(ID string) (*masterschema.FormEntryResponse, error)
 }
 
 type CampaignService struct {
@@ -532,4 +535,61 @@ func (s *CampaignService) DeleteCampaignSeo(campaignID string, ID string) error 
 		return err
 	}
 	return nil
+}
+
+func (s *CampaignService) FindSummaryEntriesByDate(workspaceID string, campaignID string) ([]masterschema.CampaignFormEntryChart, error) {
+	data, err := s.campaignRepo.FindSummaryEntriesByDate(workspaceID, campaignID)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (s *CampaignService) FindFormEntries(workspaceID string, campaignID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
+	response := commonschema.ResponseList{
+		Parameters: *params,
+		TotalPage:  1,
+		Rows:       nil,
+	}
+
+	// get list data
+	rows, err := s.campaignRepo.FindFormEntries(workspaceID, campaignID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// get count data
+	count, err := s.campaignRepo.FindCountFormEntries(workspaceID, campaignID, params)
+	if err != nil {
+		return nil, err
+	}
+	totalPage := 1
+	if count > 0 {
+		totalPage = int(math.Ceil(float64(int(count)) / float64(params.Limit)))
+	}
+
+	// send response
+	response.TotalPage = totalPage
+	response.Rows = rows
+	return &response, nil
+}
+
+func (s *CampaignService) FindFormEntry(ID string) (*masterschema.FormEntryResponse, error) {
+	// get form entry header
+	formEntry, err := s.campaignRepo.FindFormEntry(ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// get detail form entries
+	formDetailEntry, err := s.campaignRepo.FindDetailFormEntry(formEntry.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// prepare for response
+	return &masterschema.FormEntryResponse{
+		Header: *formEntry,
+		Detail: formDetailEntry,
+	}, nil
 }

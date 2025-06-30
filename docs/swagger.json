@@ -4,6 +4,183 @@
         "contact": {}
     },
     "paths": {
+        "/api/campaigns/analytics/dashboard/{workspace_id}/{campaign_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get line-graph for form entries for last 30days",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Campaign Analytics"
+                ],
+                "summary": "Form Entries Graphic",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/campaigns/analytics/form_entries/{workspace_id}/{campaign_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List of form entries based on workspace and campaign",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Campaign Analytics"
+                ],
+                "summary": "Form Entries List",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page of list data",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limitting data you want to get",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Find your data with keywords",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/campaigns/analytics/form_entries/{workspace_id}/{campaign_id}/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Detail of user entry for each campaign",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Campaign Analytics"
+                ],
+                "summary": "Form Entry detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
         "/api/campaigns/dashboard/{workspace_id}": {
             "get": {
                 "security": [

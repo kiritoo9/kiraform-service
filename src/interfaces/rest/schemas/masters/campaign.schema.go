@@ -53,3 +53,23 @@ type CampaignDashboard struct {
 	TotalVisitor int64 `json:"total_visitor"`
 	TotalSubmit  int64 `json:"total_submit"`
 }
+
+type CampaignFormEntryChart struct {
+	Total int64  `json:"total"`
+	Date  string `json:"date"`
+}
+
+type FormEntryList struct {
+	ID            string `json:"id"`
+	UserID        string `json:"user_id"`
+	CampaignID    string `json:"campaign_id"`
+	WorkspaceID   string `json:"workspace_id"`
+	Status        string `json:"status"`
+	Remark        string `json:"remark"`
+	CampaignTitle string `json:"campaign_title"`
+	CampaignKey   string `json:"campaign_key"`
+	CampaignSlug  string `json:"campaign_slug"`
+	UserName      string `json:"user_name"`
+	UserEmail     string `json:"user_email"`
+	CreatedAt     string `json:"created_at"`
+}

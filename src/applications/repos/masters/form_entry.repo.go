@@ -105,7 +105,7 @@ func (q *FormEntryQuery) FindFormEntry(userID string, ID string) (*masterschema.
 	var formEntry masterschema.FormEntrySchema
 
 	st := q.DB.Model(&models.FormEntries{}).
-		Where("form_entries.deleted = ? AND form_entries.user_id = ? and form_entries.id = ?", false, userID, ID).
+		Where("form_entries.deleted = ? AND form_entries.user_id = ? AND form_entries.id = ?", false, userID, ID).
 		Select("form_entries.*", "campaigns.title AS campaign_title", "campaigns.description AS campaign_description", "users.fullname AS user_name", "users.email AS user_email").
 		Joins("JOIN users ON users.id = form_entries.user_id").
 		Joins("JOIN campaigns ON campaigns.id = form_entries.campaign_id")

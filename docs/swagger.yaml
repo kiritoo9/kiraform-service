@@ -340,6 +340,121 @@ paths:
       summary: Update Campaign
       tags:
       - Master - Campaigns
+  /api/campaigns/analytics/dashboard/{workspace_id}/{campaign_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get line-graph for form entries for last 30days
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Form Entries Graphic
+      tags:
+      - Master - Campaign Analytics
+  /api/campaigns/analytics/form_entries/{workspace_id}/{campaign_id}:
+    get:
+      consumes:
+      - application/json
+      description: List of form entries based on workspace and campaign
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Form Entries List
+      tags:
+      - Master - Campaign Analytics
+  /api/campaigns/analytics/form_entries/{workspace_id}/{campaign_id}/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Detail of user entry for each campaign
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      - description: Campaign ID
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Form Entry detail
+      tags:
+      - Master - Campaign Analytics
   /api/campaigns/dashboard/{workspace_id}:
     get:
       consumes:

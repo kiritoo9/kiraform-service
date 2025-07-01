@@ -483,7 +483,7 @@ func (q *CampaignQuery) FindFormEntry(ID string) (*masterschema.FormEntrySchema,
 	st := q.DB.Model(&models.FormEntries{}).
 		Where("form_entries.deleted = ? AND form_entries.id = ?", false, ID).
 		Select("form_entries.*", "campaigns.title AS campaign_title", "campaigns.description AS campaign_description", "users.fullname AS user_name", "users.email AS user_email").
-		Joins("JOIN users ON users.id = form_entries.user_id").
+		Joins("LEFT JOIN users ON users.id = form_entries.user_id").
 		Joins("JOIN campaigns ON campaigns.id = form_entries.campaign_id")
 
 	if err := st.First(&formEntry).Error; err != nil {

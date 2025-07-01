@@ -65,13 +65,17 @@ func (s *FormEntryService) EntryForm(campaignID string, userID *string, body []m
 			UUIDcampaignFormAttributeID = &_attributeID
 		}
 
-		formDetailEntries = append(formDetailEntries, models.FormDetailEntries{
-			ID:                      uuid.New(),
-			FormEntryID:             formEntry.ID,
-			CampaignFormID:          UUIDcampaignFormID,
-			CampaignFormAttributeID: UUIDcampaignFormAttributeID,
-			Value:                   v.Value,
-		})
+		fde := models.FormDetailEntries{
+			ID:             uuid.New(),
+			FormEntryID:    formEntry.ID,
+			CampaignFormID: UUIDcampaignFormID,
+			Value:          v.Value,
+		}
+		if UUIDcampaignFormAttributeID != nil {
+			fde.CampaignFormAttributeID = UUIDcampaignFormAttributeID
+		}
+
+		formDetailEntries = append(formDetailEntries, fde)
 	}
 
 	// perform to insert data

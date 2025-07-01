@@ -73,6 +73,28 @@ func (s *MeService) GetProfile(userID string) (*meschema.MeResponse, error) {
 		})
 	}
 
+	// prepare data summary
+	totalForm, err := s.userrepo.FindCountFormByUser(user.ID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	totalSubmit, err := s.userrepo.FindCountFormSubmitByUser(user.ID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	TotalSendSubmit, err := s.userrepo.FindCountFormSubmittedByUser(user.ID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	userSummary := meschema.UserSummary{
+		TotalForm:       totalForm,
+		TotalSubmit:     totalSubmit,
+		TotalSendSubmit: TotalSendSubmit,
+	}
+
 	// prepare response data
 	data := meschema.MeResponse{
 		UserAccount: meschema.UserAccount{
@@ -85,6 +107,7 @@ func (s *MeService) GetProfile(userID string) (*meschema.MeResponse, error) {
 		},
 		UserProfile: userProfile,
 		UserRoles:   userRoles,
+		UserSummary: userSummary,
 	}
 	return &data, nil
 }

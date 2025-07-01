@@ -16,6 +16,9 @@ type UserRepository interface {
 	UpdateUser(ID string, user models.Users) error
 	CreateUserProfile(userProfile models.UserProfiles) error
 	UpdateUserProfile(userID string, userProfile models.UserProfiles) error
+	FindCountFormByUser(userID string) (int64, error)
+	FindCountFormSubmitByUser(userID string) (int64, error)
+	FindCountFormSubmittedByUser(userID string) (int64, error)
 }
 
 type UserQuery struct {
@@ -104,4 +107,80 @@ func (q *UserQuery) UpdateUserProfile(userID string, userProfile models.UserProf
 		return err
 	}
 	return nil
+}
+
+func (q *UserQuery) FindCountFormByUser(userID string) (int64, error) {
+	query := `
+		SELECT 
+			COUNT(1)
+		FROM campaigns
+		JOIN workspaces ON workspaces.id = campaigns.workspace_id
+		WHERE
+			campaigns.deleted = ?
+			AND workspaces.deleted = ?
+			AND workspaces.id IN (
+				SELECT workspace_users.workspace_id
+				FROM workspace_users
+				WHERE
+					workspace_users.workspace_id = workspaces.id
+					AND workspace_users.deleted = ?
+					AND workspace_users.user_id = ?
+					AND workspace_users.status IN (?, ?)
+			)
+	`
+	args := []any{false, false, false, userID, "S3", "S5"}
+
+	var count int64
+	if err := q.DB.Raw(query, args...).Scan(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (q *UserQuery) FindCountFormSubmitByUser(userID string) (int64, error) {
+	query := `
+		SELECT
+			COUNT(1)
+		FROM form_entries
+		JOIN campaigns ON campaigns.id = form_entries.campaign_id
+		JOIN workspaces ON workspaces.id = campaigns.workspace_id
+		WHERE 
+			form_entries.deleted = ?
+			AND campaigns.deleted = ?
+			AND workspaces.deleted = ?
+			AND workspaces.id IN (
+				SELECT workspace_users.workspace_id
+				FROM workspace_users
+				WHERE
+					workspace_users.workspace_id = workspaces.id
+					AND workspace_users.deleted = ?
+					AND workspace_users.user_id = ?
+					AND workspace_users.status IN (?, ?)
+			)
+	`
+	args := []any{false, false, false, false, userID, "S3", "S5"}
+
+	var count int64
+	if err := q.DB.Raw(query, args...).Scan(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (q *UserQuery) FindCountFormSubmittedByUser(userID string) (int64, error) {
+	query := `
+		SELECT
+			COUNT(1)
+		FROM form_entries
+		WHERE
+			form_entries.deleted = ?
+			AND form_entries.user_id = ?
+	`
+	args := []any{false, userID}
+
+	var count int64
+	if err := q.DB.Raw(query, args...).Scan(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }

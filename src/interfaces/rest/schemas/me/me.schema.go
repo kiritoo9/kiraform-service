@@ -31,10 +31,17 @@ type UserRole struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type UserSummary struct {
+	TotalForm       int64 `json:"total_form"`
+	TotalSubmit     int64 `json:"total_submit"`
+	TotalSendSubmit int64 `json:"total_send_submit"`
+}
+
 type MeResponse struct {
 	UserAccount UserAccount  `json:"user_account"`
 	UserProfile *UserProfile `json:"user_profile"`
 	UserRoles   []UserRole   `json:"user_roles"`
+	UserSummary UserSummary  `json:"user_summary"`
 }
 
 type UserProfilePayload struct {

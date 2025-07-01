@@ -116,7 +116,7 @@ func (s *AuthService) Register(body authschema.RegisterPayload) (*string, error)
 		UserIdentity: userIdentity,
 		Email:        body.Email,
 		Password:     string(hashedPassword),
-		Fullname:     body.Email,
+		Fullname:     body.Fullname,
 		IsActive:     true, // default true for now, next version needs to active it manually using OTP
 		CreatedAt:    time.Now(),
 	}

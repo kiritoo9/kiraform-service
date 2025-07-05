@@ -18,6 +18,8 @@ func Migrate(DB *gorm.DB) {
 		&models.WorkspaceUsers{},
 		&models.FormEntries{}, &models.FormDetailEntries{},
 		&models.Billings{}, &models.BillingDetails{},
+		&models.Stores{}, &models.StoreUsers{},
+		&models.StoreProductCategories{}, &models.StoreProducts{}, &models.StoreProductImages{},
 	)
 	if err != nil {
 		log.Fatal(fmt.Printf("Error while migrating database: %v", err))

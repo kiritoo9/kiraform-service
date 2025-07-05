@@ -5,6 +5,7 @@ import (
 	authroute "kiraform/src/interfaces/rest/routes/auths"
 	masterroute "kiraform/src/interfaces/rest/routes/masters"
 	meroute "kiraform/src/interfaces/rest/routes/me"
+	storeroute "kiraform/src/interfaces/rest/routes/stores"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -24,8 +25,11 @@ func Routes(e *echo.Echo, DB *gorm.DB) {
 	// profile routes
 	meroute.NewMeHTTP(privateApi, DB)
 
-	// regist all secure routes
+	// master routes
 	masterroute.NewFormHTTP(privateApi, DB)
 	masterroute.NewWorkspaceHTTP(privateApi, DB)
 	masterroute.NewCampaignHTTP(privateApi, DB)
+
+	// store routes
+	storeroute.NewStoreHTTP(privateApi, DB)
 }

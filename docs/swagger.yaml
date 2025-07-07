@@ -190,6 +190,15 @@ definitions:
     required:
     - first_name
     type: object
+  storeschema.ProductCategoryPayload:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
   storeschema.StorePayload:
     properties:
       address:
@@ -1052,7 +1061,7 @@ paths:
       - BearerAuth: []
       summary: Store Profile
       tags:
-      - Store
+      - Store - Profile
     put:
       consumes:
       - application/json
@@ -1079,7 +1088,155 @@ paths:
       - BearerAuth: []
       summary: Update Store Profile
       tags:
-      - Store
+      - Store - Profile
+  /api/store/product_categories:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of product categories based on logged user
+      parameters:
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: List Product Categories
+      tags:
+      - Store - Product Categories
+    post:
+      consumes:
+      - application/json
+      description: Create new product category for logged user store
+      parameters:
+      - description: product category payload
+        in: body
+        name: productCategoryPayload
+        required: true
+        schema:
+          $ref: '#/definitions/storeschema.ProductCategoryPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Create Product Category
+      tags:
+      - Store - Product Categories
+  /api/store/product_categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete existing product category for logged user store data
+      parameters:
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Delete Product Category
+      tags:
+      - Store - Product Categories
+    get:
+      consumes:
+      - application/json
+      description: Get detail of product category
+      parameters:
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detail Product Category
+      tags:
+      - Store - Product Categories
+    put:
+      consumes:
+      - application/json
+      description: Update existing product category for logged user store
+      parameters:
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: product category payload
+        in: body
+        name: productCategoryPayload
+        required: true
+        schema:
+          $ref: '#/definitions/storeschema.ProductCategoryPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Update Product Category
+      tags:
+      - Store - Product Categories
   /api/workspaces:
     get:
       consumes:

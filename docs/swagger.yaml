@@ -190,6 +190,28 @@ definitions:
     required:
     - first_name
     type: object
+  storeschema.StorePayload:
+    properties:
+      address:
+        type: string
+      category:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      operational_hour:
+        type: string
+      phone:
+        type: string
+      thumbnail:
+        type: string
+    required:
+    - category
+    - name
+    type: object
 info:
   contact: {}
 paths:
@@ -1010,6 +1032,54 @@ paths:
       summary: Registration
       tags:
       - Authentication
+  /api/store:
+    get:
+      consumes:
+      - application/json
+      description: Get store profile for logged user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Store Profile
+      tags:
+      - Store
+    put:
+      consumes:
+      - application/json
+      description: Update store profile for logged user
+      parameters:
+      - description: store payload
+        in: body
+        name: storePayload
+        required: true
+        schema:
+          $ref: '#/definitions/storeschema.StorePayload'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Data updated
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Update Store Profile
+      tags:
+      - Store
   /api/workspaces:
     get:
       consumes:

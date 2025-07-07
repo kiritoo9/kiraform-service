@@ -15,7 +15,7 @@ type Stores struct {
 	Description     string     `gorm:"type:text" json:"description"`
 	Thumbnail       string     `gorm:"type:text" json:"thumbnail"`
 	OperationalHour string     `gorm:"type:text" json:"operational_hour"`
-	Adddress        string     `gorm:"type:text" json:"address"`
+	Address         string     `gorm:"type:text" json:"address"`
 	Phone           string     `gorm:"type:varchar(20)" json:"phone"`
 	Email           string     `gorm:"type:varchar(70)" json:"email"`
 	Status          string     `gorm:"type:char(2);not null;comment:S1=PENDING,S2=ACTIVE,S3=INACTIVE" json:"status"`

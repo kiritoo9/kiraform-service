@@ -1284,6 +1284,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/store": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get store profile for logged user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Store Profile",
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update store profile for logged user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Update Store Profile",
+                "parameters": [
+                    {
+                        "description": "store payload",
+                        "name": "storePayload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/storeschema.StorePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Data updated",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
         "/api/workspaces": {
             "get": {
                 "security": [
@@ -2079,6 +2156,39 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sub_district": {
+                    "type": "string"
+                }
+            }
+        },
+        "storeschema.StorePayload": {
+            "type": "object",
+            "required": [
+                "category",
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "operational_hour": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "thumbnail": {
                     "type": "string"
                 }
             }

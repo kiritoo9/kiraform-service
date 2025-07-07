@@ -6,6 +6,7 @@ import (
 	"kiraform/src/applications/models"
 	storerepo "kiraform/src/applications/repos/stores"
 	commonschema "kiraform/src/interfaces/rest/schemas/commons"
+	masterschema "kiraform/src/interfaces/rest/schemas/masters"
 	storeschema "kiraform/src/interfaces/rest/schemas/stores"
 	"kiraform/src/utils"
 	"math"
@@ -25,6 +26,8 @@ type StoreUsecase interface {
 	CreateStoreProductCategory(userID string, body storeschema.ProductCategoryPayload) error
 	UpdateStoreProductCategory(userID string, ID string, body storeschema.ProductCategoryPayload) error
 	DeleteStoreProductCategory(userID string, ID string) error
+	FindStoreProducts(userID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
+	CreateStoreProduct(userID string, body storeschema.ProductPayload) error
 }
 
 type StoreService struct {
@@ -295,5 +298,145 @@ func (s *StoreService) DeleteStoreProductCategory(userID string, ID string) erro
 
 	// return success response
 	// by flag as no-error
+	return nil
+}
+
+func (s *StoreService) FindStoreProducts(userID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
+	// check valid store
+	store, err := s.FindStore(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// perform to get product categories
+	list, err := s.storeRepo.FindStoreProducts(store.ID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// get count data
+	count, err := s.storeRepo.FindCountStoreProducts(store.ID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert to response schema
+	data := []storeschema.ProductResponse{}
+	for _, v := range list {
+		var campaignID string
+		if v.CampaignID != nil {
+			campaignID = v.CampaignID.String()
+		}
+
+		d := storeschema.ProductResponse{
+			ID:          v.ID.String(),
+			StoreID:     v.StoreID.String(),
+			CategoryID:  v.CategoryID.String(),
+			CampaignID:  &campaignID,
+			Key:         v.Key,
+			Slug:        v.Slug,
+			Name:        v.Name,
+			Description: v.Description,
+			Price:       v.Price,
+			Status:      v.Status,
+			CreatedAt:   v.CreatedAt,
+			Category: storeschema.ProductCategoryResponse{
+				ID:          v.CategoryID.String(),
+				Name:        v.Category.Name,
+				Description: v.Category.Description,
+				CreatedAt:   v.Category.CreatedAt,
+			},
+		}
+
+		if v.CampaignID != nil {
+			d.Campaign = &masterschema.CampaignSchema{
+				ID:          v.Campaign.ID,
+				WorkspaceID: v.Campaign.WorkspaceID.String(),
+				Title:       v.Campaign.Title,
+				Key:         v.Campaign.Key,
+				Slug:        v.Campaign.Slug,
+				Description: v.Campaign.Description,
+				IsPublish:   v.Campaign.IsPublish,
+				CreatedAt:   &v.Campaign.CreatedAt,
+			}
+		}
+
+		data = append(data, d)
+	}
+
+	// prepare response list
+	totalPage := 1
+	if count > 0 && params.Limit > 0 {
+		totalPage = int(math.Ceil(float64(count) / float64(params.Limit)))
+	}
+
+	response := commonschema.ResponseList{
+		Parameters: *params,
+		TotalPage:  totalPage,
+		Rows:       data,
+	}
+
+	// return success response
+	return &response, nil
+}
+
+func (s *StoreService) CreateStoreProduct(userID string, body storeschema.ProductPayload) error {
+	// check valid store
+	store, err := s.FindStore(userID)
+	if err != nil {
+		return err
+	}
+
+	// converting uuid-string into uuid-type
+	uuidStoreID, err := uuid.Parse(store.ID)
+	if err != nil {
+		return err
+	}
+
+	uuidCategoryID, err := uuid.Parse(body.CategoryID)
+	if err != nil {
+		return err
+	}
+
+	// prepare data for insert
+	ID := uuid.New()
+	arrID := strings.Split(ID.String(), "-")
+	key := ""
+	if len(arrID) > 0 {
+		key = arrID[0]
+	}
+
+	data := models.StoreProducts{
+		ID:          ID,
+		StoreID:     uuidStoreID,
+		CategoryID:  uuidCategoryID,
+		Name:        body.Name,
+		Slug:        slug.Make(body.Name),
+		Key:         key,
+		Description: body.Description,
+		Price:       body.Price,
+		Status:      body.Status,
+		CreatedAt:   time.Now(),
+	}
+
+	campaignID := body.CampaignID
+	if campaignID != nil {
+		uuidCampaignID, err := uuid.Parse(*campaignID)
+		if err != nil {
+			return err
+		}
+		data.CampaignID = &uuidCampaignID
+	}
+
+	// prepare to insert images
+
+	// perform to insert data
+	err = s.storeRepo.CreateProduct(data)
+	if err != nil {
+		return err
+	}
+
+	// return success response
+	// by set as no-error
 	return nil
 }

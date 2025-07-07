@@ -1594,6 +1594,105 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/store/products": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the list of products based on logged user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Store - Products"
+                ],
+                "summary": "List Products",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page of list data",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limitting data you want to get",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Find your data with keywords",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create new product for logged user store",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Store - Products"
+                ],
+                "summary": "Create Product",
+                "parameters": [
+                    {
+                        "description": "product payload",
+                        "name": "productPayload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/storeschema.ProductPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
         "/api/workspaces": {
             "get": {
                 "security": [
@@ -2403,6 +2502,40 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "storeschema.ProductPayload": {
+            "type": "object",
+            "required": [
+                "category_id",
+                "name",
+                "status"
+            ],
+            "properties": {
+                "campaign_id": {
+                    "type": "string"
+                },
+                "category_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "status": {
                     "type": "string"
                 }
             }

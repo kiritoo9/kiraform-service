@@ -199,6 +199,29 @@ definitions:
     required:
     - name
     type: object
+  storeschema.ProductPayload:
+    properties:
+      campaign_id:
+        type: string
+      category_id:
+        type: string
+      description:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      price:
+        type: integer
+      status:
+        type: string
+    required:
+    - category_id
+    - name
+    - status
+    type: object
   storeschema.StorePayload:
     properties:
       address:
@@ -1237,6 +1260,69 @@ paths:
       summary: Update Product Category
       tags:
       - Store - Product Categories
+  /api/store/products:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of products based on logged user
+      parameters:
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: List Products
+      tags:
+      - Store - Products
+    post:
+      consumes:
+      - application/json
+      description: Create new product for logged user store
+      parameters:
+      - description: product payload
+        in: body
+        name: productPayload
+        required: true
+        schema:
+          $ref: '#/definitions/storeschema.ProductPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Create Product
+      tags:
+      - Store - Products
   /api/workspaces:
     get:
       consumes:

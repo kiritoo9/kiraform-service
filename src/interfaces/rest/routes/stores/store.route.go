@@ -47,10 +47,10 @@ func NewStoreHTTP(g *echo.Group, DB *gorm.DB) {
 	// define store product routes
 	sp := s.Group("/products")
 	sp.GET("", h.FindStoreProducts)
-	// sp.GET("/:id", h.FindStoreProduct)
+	sp.GET("/:id", h.FindStoreProduct)
 	sp.POST("", h.CreateStoreProduct)
-	// sp.PUT("", h.UpdateStoreProduct)
-	// sp.DELETE("/:id", h.DeleteStoreProduct)
+	sp.PUT("/:id", h.UpdateStoreProduct)
+	sp.DELETE("/:id", h.DeleteStoreProduct)
 }
 
 // @Security BearerAuth
@@ -71,7 +71,7 @@ func (h *StoreHandler) FindStore(c echo.Context) error {
 	}
 
 	// get data from usecase
-	data, err := h.Dependencies.UC.FindStore(userID)
+	data, err := h.Dependencies.UC.FindStore(c, userID)
 	if err != nil {
 		return echo.NewHTTPError(response.Code, err.Error())
 	}
@@ -328,7 +328,39 @@ func (h *StoreHandler) FindStoreProducts(c echo.Context) error {
 	params := utils.QParams(c)
 
 	// get data from usecase
-	data, err := h.Dependencies.UC.FindStoreProducts(userID, params)
+	data, err := h.Dependencies.UC.FindStoreProducts(c, userID, params)
+	if err != nil {
+		return echo.NewHTTPError(response.Code, err.Error())
+	}
+
+	// send response
+	response.Code = http.StatusOK
+	response.Message = "Request success"
+	response.Data = data
+	return c.JSON(response.Code, response)
+}
+
+// @Security BearerAuth
+// @Summary      Detail Product
+// @Description  Get detail of product
+// @Tags         Store - Products
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 id path string true "ID of your data"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/store/products/{id} [get]
+func (h *StoreHandler) FindStoreProduct(c echo.Context) error {
+	// prepare usable data
+	response := commonschema.ResponseHTTP{Code: http.StatusBadRequest}
+	ID := c.Param("id")
+	userID, _ := c.Get("user_id").(string)
+	if userID == "" {
+		return echo.NewHTTPError(http.StatusUnauthorized, errors.New("your token is not valid"))
+	}
+
+	// get data from usecase
+	data, err := h.Dependencies.UC.FindStoreProduct(c, userID, ID)
 	if err != nil {
 		return echo.NewHTTPError(response.Code, err.Error())
 	}
@@ -378,5 +410,78 @@ func (h *StoreHandler) CreateStoreProduct(c echo.Context) error {
 	response.Code = http.StatusCreated
 	response.Message = "Data created"
 	response.Data = body
+	return c.JSON(response.Code, response)
+}
+
+// @Security BearerAuth
+// @Summary      Update Product
+// @Description  Update existing product for logged user store
+// @Tags         Store - Products
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 id path string true "ID of your data"
+// @Param        productPayload  body      storeschema.ProductPayload   true  "product payload"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/store/products/{id} [put]
+func (h *StoreHandler) UpdateStoreProduct(c echo.Context) error {
+	// get parameters
+	ID := c.Param("id")
+	userID, _ := c.Get("user_id").(string)
+	if userID == "" {
+		return echo.NewHTTPError(http.StatusUnauthorized, errors.New("your token is not valid"))
+	}
+	var body storeschema.ProductPayload
+	response := commonschema.ResponseHTTP{Code: http.StatusBadRequest}
+
+	// validate body
+	if err := c.Bind(&body); err != nil {
+		return echo.NewHTTPError(response.Code, err.Error())
+	}
+
+	if err := h.Validator.Struct(body); err != nil {
+		return echo.NewHTTPError(response.Code, err.Error())
+	}
+
+	// perform to create data
+	err := h.Dependencies.UC.UpdateStoreProduct(userID, ID, body)
+	if err != nil {
+		return echo.NewHTTPError(response.Code, err.Error())
+	}
+
+	// send response
+	response.Code = http.StatusNoContent
+	response.Message = "Data updated"
+	return c.JSON(response.Code, response)
+}
+
+// @Security BearerAuth
+// @Summary      Delete Product
+// @Description  Delete existing product for logged user store data
+// @Tags         Store - Products
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 id path string true "ID of your data"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/store/products/{id} [delete]
+func (h *StoreHandler) DeleteStoreProduct(c echo.Context) error {
+	// get parameters
+	ID := c.Param("id")
+	userID, _ := c.Get("user_id").(string)
+	if userID == "" {
+		return echo.NewHTTPError(http.StatusUnauthorized, errors.New("your token is not valid"))
+	}
+	response := commonschema.ResponseHTTP{Code: http.StatusBadRequest}
+
+	// perform to create data
+	err := h.Dependencies.UC.DeleteStoreProduct(userID, ID)
+	if err != nil {
+		return echo.NewHTTPError(response.Code, err.Error())
+	}
+
+	// send response
+	response.Code = http.StatusNoContent
+	response.Message = "Data deleted"
 	return c.JSON(response.Code, response)
 }

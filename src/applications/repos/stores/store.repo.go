@@ -20,7 +20,12 @@ type StoreRepository interface {
 	UpdateStoreProductCategory(userID string, data models.StoreProductCategories) error
 	FindStoreProducts(storeID string, params *commonschema.QueryParams) ([]models.StoreProducts, error)
 	FindCountStoreProducts(storeID string, params *commonschema.QueryParams) (int64, error)
+	FindStoreProduct(storeID string, ID string) (*models.StoreProducts, error)
 	CreateProduct(data models.StoreProducts) error
+	CreateProductImages(data []models.StoreProductImages) error
+	FindImagesByProduct(storeProductID string) ([]models.StoreProductImages, error)
+	UpdateStoreProduct(data models.StoreProducts, storeID string, ID string) error
+	DeleteProductImage(storeProductImageID string) error
 }
 
 type StoreQuery struct {
@@ -176,8 +181,54 @@ func (q *StoreQuery) FindCountStoreProducts(storeID string, params *commonschema
 	return count, nil
 }
 
+func (q *StoreQuery) FindStoreProduct(storeID string, ID string) (*models.StoreProducts, error) {
+	var data models.StoreProducts
+	if err := q.DB.Model(&models.StoreProducts{}).
+		Preload("Store").
+		Preload("Category").
+		Preload("Campaign").
+		Where("deleted = ? AND store_id = ? AND id = ?", false, storeID, ID).
+		First(&data).Error; err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
+
 func (q *StoreQuery) CreateProduct(data models.StoreProducts) error {
 	if err := q.DB.Model(&models.StoreProducts{}).Create(&data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *StoreQuery) CreateProductImages(data []models.StoreProductImages) error {
+	if err := q.DB.Model(&models.StoreProductImages{}).Create(&data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *StoreQuery) FindImagesByProduct(storeProductID string) ([]models.StoreProductImages, error) {
+	var images []models.StoreProductImages
+	if err := q.DB.Model(&models.StoreProductImages{}).
+		Where("deleted = ? AND store_product_id = ?", false, storeProductID).
+		Order("created_at ASC").Find(&images).Error; err != nil {
+		return nil, err
+	}
+	return images, nil
+}
+
+func (q *StoreQuery) UpdateStoreProduct(data models.StoreProducts, storeID string, ID string) error {
+	if err := q.DB.Model(&models.StoreProducts{}).Where("deleted = ? AND store_id = ? AND id = ?", false, storeID, ID).Updates(&data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *StoreQuery) DeleteProductImage(storeProductImageID string) error {
+	if err := q.DB.Model(&models.StoreProductImages{}).
+		Where("deleted = ? AND id = ?", false, storeProductImageID).
+		Delete(&models.StoreProductImages{}).Error; err != nil {
 		return err
 	}
 	return nil

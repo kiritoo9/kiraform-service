@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"kiraform/src/infras/configs"
 	"kiraform/src/interfaces/rest/routes"
+	"log"
+	"path/filepath"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -24,6 +26,13 @@ func main() {
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
 	}))
+
+	// serve static file
+	cdnPath, err := filepath.Abs("./cdn")
+	if err != nil {
+		log.Fatal("Failed to resolve CDN path:", err)
+	}
+	e.Static("/cdn", cdnPath)
 
 	// load swagger only for development environment
 	if strings.ToLower(CONFIG.APP_ENV) == "dev" {

@@ -7,7 +7,18 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/labstack/echo/v4"
 )
+
+func ServeImage(c echo.Context, filePath string) string {
+	host := c.Request().Host
+	protocol := "http"
+	if c.Request().TLS != nil {
+		protocol = "https"
+	}
+	return fmt.Sprintf("%s://%s/%s", protocol, host, filePath)
+}
 
 func RemoveImage(filePath string) error {
 	err := os.Remove(filePath)

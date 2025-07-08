@@ -199,6 +199,13 @@ definitions:
     required:
     - name
     type: object
+  storeschema.ProductImages:
+    properties:
+      file_name:
+        type: string
+      id:
+        type: string
+    type: object
   storeschema.ProductPayload:
     properties:
       campaign_id:
@@ -209,7 +216,7 @@ definitions:
         type: string
       images:
         items:
-          type: string
+          $ref: '#/definitions/storeschema.ProductImages'
         type: array
       name:
         type: string
@@ -1321,6 +1328,91 @@ paths:
       security:
       - BearerAuth: []
       summary: Create Product
+      tags:
+      - Store - Products
+  /api/store/products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete existing product for logged user store data
+      parameters:
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Delete Product
+      tags:
+      - Store - Products
+    get:
+      consumes:
+      - application/json
+      description: Get detail of product
+      parameters:
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detail Product
+      tags:
+      - Store - Products
+    put:
+      consumes:
+      - application/json
+      description: Update existing product for logged user store
+      parameters:
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: product payload
+        in: body
+        name: productPayload
+        required: true
+        schema:
+          $ref: '#/definitions/storeschema.ProductPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Update Product
       tags:
       - Store - Products
   /api/workspaces:

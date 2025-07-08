@@ -1933,6 +1933,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/workspaces/campaigns": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all data campaigns",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Workspaces"
+                ],
+                "summary": "Get all campaigns",
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/workspaces/detail/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detail data of workspace you choose",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master - Workspaces"
+                ],
+                "summary": "Detail Workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of your data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request success",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    },
+                    "400": {
+                        "description": "Request failure",
+                        "schema": {
+                            "$ref": "#/definitions/commonschema.ResponseHTTP"
+                        }
+                    }
+                }
+            }
+        },
         "/api/workspaces/users/{workspace_id}": {
             "get": {
                 "security": [
@@ -2209,47 +2286,6 @@ const docTemplate = `{
             }
         },
         "/api/workspaces/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get detail data of workspace you choose",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Master - Workspaces"
-                ],
-                "summary": "Detail Workspace",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID of your data",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Request success",
-                        "schema": {
-                            "$ref": "#/definitions/commonschema.ResponseHTTP"
-                        }
-                    },
-                    "400": {
-                        "description": "Request failure",
-                        "schema": {
-                            "$ref": "#/definitions/commonschema.ResponseHTTP"
-                        }
-                    }
-                }
-            },
             "put": {
                 "security": [
                     {

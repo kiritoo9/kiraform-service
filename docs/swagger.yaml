@@ -1510,32 +1510,6 @@ paths:
       summary: Delete Workspace
       tags:
       - Master - Workspaces
-    get:
-      consumes:
-      - application/json
-      description: Get detail data of workspace you choose
-      parameters:
-      - description: ID of your data
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Request success
-          schema:
-            $ref: '#/definitions/commonschema.ResponseHTTP'
-        "400":
-          description: Request failure
-          schema:
-            $ref: '#/definitions/commonschema.ResponseHTTP'
-      security:
-      - BearerAuth: []
-      summary: Detail Workspace
-      tags:
-      - Master - Workspaces
     put:
       consumes:
       - application/json
@@ -1566,6 +1540,54 @@ paths:
       security:
       - BearerAuth: []
       summary: Update Workspace
+      tags:
+      - Master - Workspaces
+  /api/workspaces/campaigns:
+    get:
+      consumes:
+      - application/json
+      description: Get all data campaigns
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Get all campaigns
+      tags:
+      - Master - Workspaces
+  /api/workspaces/detail/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detail data of workspace you choose
+      parameters:
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Detail Workspace
       tags:
       - Master - Workspaces
   /api/workspaces/users/{workspace_id}:

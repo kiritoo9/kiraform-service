@@ -21,3 +21,12 @@ type WorkspaceList struct {
 	TotalSubmit int64     `json:"total_submit"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+type CampaignSelectResponse struct {
+	ID                   string `json:"id"`
+	WorkspaceID          string `json:"workspace_id"`
+	Title                string `json:"title"`
+	Description          string `json:"description"`
+	WorkspaceTitle       string `json:"workspace_title"`
+	WorkspaceDescription string `json:"workspace_description"`
+}

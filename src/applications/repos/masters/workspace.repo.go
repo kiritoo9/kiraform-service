@@ -24,6 +24,7 @@ type WorkspaceRepository interface {
 	UpdateWorkspaceUser(workspaceID string, ID string, data models.WorkspaceUsers) error
 	FindCountCampaignByWorkspace(workspaceID string) (int64, error)
 	FindCountFormSubmissionByWorkspace(workspaceID string) (int64, error)
+	FindAllCampaignsByUser(userID string) ([]masterschema.CampaignSelectResponse, error)
 }
 
 type WorkspaceQuery struct {
@@ -244,4 +245,32 @@ func (q *WorkspaceQuery) FindCountFormSubmissionByWorkspace(workspaceID string) 
 		return 0, err
 	}
 	return count, nil
+}
+
+func (q *WorkspaceQuery) FindAllCampaignsByUser(userID string) ([]masterschema.CampaignSelectResponse, error) {
+	var data []masterschema.CampaignSelectResponse
+	err := q.DB.Raw(`
+		SELECT 
+			campaigns.id, campaigns.workspace_id, campaigns.title, campaigns.description, 
+			workspaces.title AS workspace_title, workspaces.description AS workspace_description 
+		FROM campaigns 
+		JOIN workspaces ON workspaces.id = campaigns.workspace_id 
+		WHERE 
+			campaigns.deleted = ? 
+			AND workspaces.deleted = ? 
+			AND workspaces.id IN (
+				SELECT workspace_users.workspace_id 
+				FROM workspace_users
+				WHERE
+					workspace_users.workspace_id = workspaces.id
+					AND workspace_users.deleted = ?
+					AND workspace_users.user_id = ?
+			)
+		ORDER BY campaigns.title ASC
+	`, false, false, false, userID).
+		Scan(&data).Error
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

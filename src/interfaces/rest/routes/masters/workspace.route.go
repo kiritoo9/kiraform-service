@@ -1,6 +1,7 @@
 package masterroute
 
 import (
+	"errors"
 	masterdi "kiraform/src/applications/dependencies/masters"
 	"kiraform/src/applications/helpers"
 	commonschema "kiraform/src/interfaces/rest/schemas/commons"
@@ -35,7 +36,8 @@ func NewWorkspaceHTTP(g *echo.Group, DB *gorm.DB) {
 	// workspace endpoints
 	w := g.Group("/workspaces")
 	w.GET("", h.FindWorkspaces)
-	w.GET("/:id", h.FindWorkspace)
+	w.GET("/campaigns", h.FindAllCampaigns)
+	w.GET("/detail/:id", h.FindWorkspace)
 	w.POST("", h.CreateWorkspace)
 	w.PUT("/:id", h.UpdateWorkspace)
 	w.DELETE("/:id", h.DeleteWokspace)
@@ -93,6 +95,36 @@ func (h *WorkspaceHandler) FindWorkspaces(c echo.Context) error {
 }
 
 // @Security BearerAuth
+// @Summary      Get all campaigns
+// @Description  Get all data campaigns
+// @Tags         Master - Workspaces
+// @Accept  	 json
+// @Produce  	 json
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/workspaces/campaigns [get]
+func (h *WorkspaceHandler) FindAllCampaigns(c echo.Context) error {
+	// define data
+	response := commonschema.ResponseHTTP{Code: http.StatusBadRequest}
+	userID, _ := c.Get("user_id").(string)
+	if userID == "" {
+		return echo.NewHTTPError(response.Code, errors.New("invalid user token"))
+	}
+
+	// get all campaigns for this user
+	data, err := h.Dependencies.UC.FindAllCampaignsByUser(userID)
+	if err != nil {
+		return echo.NewHTTPError(response.Code, err.Error())
+	}
+
+	// send response
+	response.Code = http.StatusOK
+	response.Message = "Request success"
+	response.Data = data
+	return c.JSON(response.Code, response)
+}
+
+// @Security BearerAuth
 // @Summary      Detail Workspace
 // @Description  Get detail data of workspace you choose
 // @Tags         Master - Workspaces
@@ -101,7 +133,7 @@ func (h *WorkspaceHandler) FindWorkspaces(c echo.Context) error {
 // @Param 		 id path string true "ID of your data"
 // @Success      200  {object} commonschema.ResponseHTTP "Request success"
 // @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
-// @Router       /api/workspaces/{id} [get]
+// @Router       /api/workspaces/detail/{id} [get]
 func (h *WorkspaceHandler) FindWorkspace(c echo.Context) error {
 	// define data
 	response := commonschema.ResponseHTTP{Code: http.StatusBadRequest}

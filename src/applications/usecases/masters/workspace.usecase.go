@@ -27,6 +27,7 @@ type WorkspaceUsecase interface {
 	CreateWorkspaceUser(workspaceID string, body masterschema.WorkspaceUserPayload) error
 	UpdateWorkspaceUser(workspaceID string, ID string, body masterschema.WorkspaceUserUpdatePayload) error
 	DeleteWorkspaceUser(workspaceID string, ID string) error
+	FindAllCampaignsByUser(userID string) ([]masterschema.CampaignSelectResponse, error)
 }
 
 type WorkspaceService struct {
@@ -360,4 +361,12 @@ func (s *WorkspaceService) DeleteWorkspaceUser(workspaceID string, ID string) er
 		return err
 	}
 	return nil
+}
+
+func (s *WorkspaceService) FindAllCampaignsByUser(userID string) ([]masterschema.CampaignSelectResponse, error) {
+	data, err := s.workspaceRepo.FindAllCampaignsByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

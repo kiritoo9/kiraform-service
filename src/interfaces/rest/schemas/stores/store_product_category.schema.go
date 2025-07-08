@@ -8,8 +8,9 @@ type ProductCategoryPayload struct {
 }
 
 type ProductCategoryResponse struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID            string    `json:"id"`
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	CreatedAt     time.Time `json:"created_at"`
+	TotalProducts int64     `json:"total_products"`
 }

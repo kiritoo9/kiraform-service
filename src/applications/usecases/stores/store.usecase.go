@@ -44,14 +44,29 @@ func NewStoreUsecase(storeRepo storerepo.StoreRepository) *StoreService {
 	}
 }
 
-func (s *StoreService) findStore(userID string) (*storeschema.StoreResponse, error) {
+func (s *StoreService) findStore(userID string, returnOriginalError bool) (*storeschema.StoreResponse, error) {
 	data, err := s.storeRepo.FindStoreByUser(userID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("store data not found, please create your store first")
+		if returnOriginalError {
+			return nil, err
+		} else {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, errors.New("store data not found, please create your store first")
+			}
+			return nil, err
 		}
+	}
+
+	totalCategories, err := s.storeRepo.FindCountStoreProductCategories(data.ID.String(), nil)
+	if err != nil {
 		return nil, err
 	}
+
+	totalProducts, err := s.storeRepo.FindCountStoreProducts(data.ID.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
 	return &storeschema.StoreResponse{
 		ID:              data.ID.String(),
 		Key:             data.Key,
@@ -65,11 +80,13 @@ func (s *StoreService) findStore(userID string) (*storeschema.StoreResponse, err
 		OperationalHour: data.OperationalHour,
 		Thumbnail:       data.Thumbnail,
 		UpdatedAt:       data.UpdatedAt,
+		TotalCategories: totalCategories,
+		TotalProducts:   totalProducts,
 	}, nil
 }
 
 func (s *StoreService) FindStore(c echo.Context, userID string) (*storeschema.StoreResponse, error) {
-	data, err := s.findStore(userID)
+	data, err := s.findStore(userID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +101,7 @@ func (s *StoreService) UpdateStore(userID string, body storeschema.StorePayload)
 	// if exists then update it
 	// otherwise insert new one with store_users
 
-	exists, err := s.findStore(userID)
+	exists, err := s.findStore(userID, true)
 	isExists := true
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -173,7 +190,7 @@ func (s *StoreService) UpdateStore(userID string, body storeschema.StorePayload)
 
 func (s *StoreService) FindStoreProductCategories(userID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
 	// check valid store
-	store, err := s.findStore(userID)
+	store, err := s.findStore(userID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -193,11 +210,17 @@ func (s *StoreService) FindStoreProductCategories(userID string, params *commons
 	// convert to response schema
 	var data []storeschema.ProductCategoryResponse
 	for _, v := range list {
+		totalProducts, err := s.storeRepo.FindCountStoreProductsByCategory(store.ID, v.ID.String())
+		if err != nil {
+			return nil, err
+		}
+
 		data = append(data, storeschema.ProductCategoryResponse{
-			ID:          v.ID.String(),
-			Name:        v.Name,
-			Description: v.Description,
-			CreatedAt:   v.CreatedAt,
+			ID:            v.ID.String(),
+			Name:          v.Name,
+			Description:   v.Description,
+			CreatedAt:     v.CreatedAt,
+			TotalProducts: totalProducts,
 		})
 	}
 
@@ -219,7 +242,7 @@ func (s *StoreService) FindStoreProductCategories(userID string, params *commons
 
 func (s *StoreService) FindStoreProductCategory(userID string, ID string) (*storeschema.ProductCategoryResponse, error) {
 	// check valid store
-	store, err := s.findStore(userID)
+	store, err := s.findStore(userID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +264,7 @@ func (s *StoreService) FindStoreProductCategory(userID string, ID string) (*stor
 
 func (s *StoreService) CreateStoreProductCategory(userID string, body storeschema.ProductCategoryPayload) error {
 	// check valid store
-	store, err := s.findStore(userID)
+	store, err := s.findStore(userID, false)
 	if err != nil {
 		return err
 	}
@@ -272,7 +295,7 @@ func (s *StoreService) CreateStoreProductCategory(userID string, body storeschem
 
 func (s *StoreService) UpdateStoreProductCategory(userID string, ID string, body storeschema.ProductCategoryPayload) error {
 	// check valid store
-	_, err := s.findStore(userID)
+	_, err := s.findStore(userID, false)
 	if err != nil {
 		return err
 	}
@@ -295,7 +318,7 @@ func (s *StoreService) UpdateStoreProductCategory(userID string, ID string, body
 }
 
 func (s *StoreService) DeleteStoreProductCategory(userID string, ID string) error {
-	_, err := s.findStore(userID)
+	_, err := s.findStore(userID, false)
 	if err != nil {
 		return err
 	}
@@ -318,7 +341,7 @@ func (s *StoreService) DeleteStoreProductCategory(userID string, ID string) erro
 
 func (s *StoreService) FindStoreProducts(c echo.Context, userID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
 	// check valid store
-	store, err := s.findStore(userID)
+	store, err := s.findStore(userID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +434,7 @@ func (s *StoreService) FindStoreProducts(c echo.Context, userID string, params *
 
 func (s *StoreService) FindStoreProduct(c echo.Context, userID string, ID string) (*storeschema.ProductResponse, error) {
 	// check valid store
-	store, err := s.findStore(userID)
+	store, err := s.findStore(userID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -492,7 +515,7 @@ func (s *StoreService) FindStoreProduct(c echo.Context, userID string, ID string
 
 func (s *StoreService) CreateStoreProduct(userID string, body storeschema.ProductPayload) error {
 	// check valid store
-	store, err := s.findStore(userID)
+	store, err := s.findStore(userID, false)
 	if err != nil {
 		return err
 	}
@@ -574,7 +597,7 @@ func (s *StoreService) CreateStoreProduct(userID string, body storeschema.Produc
 
 func (s *StoreService) UpdateStoreProduct(userID string, ID string, body storeschema.ProductPayload) error {
 	// check valid store
-	store, err := s.findStore(userID)
+	store, err := s.findStore(userID, false)
 	if err != nil {
 		return err
 	}
@@ -679,7 +702,7 @@ func (s *StoreService) UpdateStoreProduct(userID string, ID string, body storesc
 
 func (s *StoreService) DeleteStoreProduct(userID string, ID string) error {
 	// check valid store
-	store, err := s.findStore(userID)
+	store, err := s.findStore(userID, false)
 	if err != nil {
 		return err
 	}

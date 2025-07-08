@@ -26,4 +26,6 @@ type StoreResponse struct {
 	OperationalHour string     `json:"operational_hour"`
 	Thumbnail       string     `json:"thumbnail"`
 	UpdatedAt       *time.Time `json:"updated_at"`
+	TotalProducts   int64      `json:"total_products"`
+	TotalCategories int64      `json:"total_categories"`
 }

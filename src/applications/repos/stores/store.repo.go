@@ -20,6 +20,7 @@ type StoreRepository interface {
 	UpdateStoreProductCategory(userID string, data models.StoreProductCategories) error
 	FindStoreProducts(storeID string, params *commonschema.QueryParams) ([]models.StoreProducts, error)
 	FindCountStoreProducts(storeID string, params *commonschema.QueryParams) (int64, error)
+	FindCountStoreProductsByCategory(storeID string, storeProductCategoryID string) (int64, error)
 	FindStoreProduct(storeID string, ID string) (*models.StoreProducts, error)
 	CreateProduct(data models.StoreProducts) error
 	CreateProductImages(data []models.StoreProductImages) error
@@ -101,7 +102,7 @@ func (q *StoreQuery) FindCountStoreProductCategories(storeID string, params *com
 	st := q.DB.Model(&models.StoreProductCategories{}).Where("deleted = ? AND store_id = ?", false, storeID)
 
 	// handle search condition
-	if params.Search != "" {
+	if params != nil && params.Search != "" {
 		st = st.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(params.Search)+"%")
 	}
 
@@ -170,12 +171,20 @@ func (q *StoreQuery) FindCountStoreProducts(storeID string, params *commonschema
 	st := q.DB.Model(&models.StoreProducts{}).Where("deleted = ? AND store_id = ?", false, storeID)
 
 	// handle search condition
-	if params.Search != "" {
+	if params != nil && params.Search != "" {
 		st = st.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(params.Search)+"%")
 	}
 
 	// perform to get data
 	if err := st.Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (q *StoreQuery) FindCountStoreProductsByCategory(storeID string, storeProductCategoryID string) (int64, error) {
+	var count int64
+	if err := q.DB.Model(&models.StoreProducts{}).Where("deleted = ? AND store_id = ? AND category_id = ?", false, storeID, storeProductCategoryID).Count(&count).Error; err != nil {
 		return 0, err
 	}
 	return count, nil

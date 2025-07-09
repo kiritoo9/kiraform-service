@@ -163,11 +163,10 @@ func (s *StoreService) UpdateStore(userID string, body storeschema.StorePayload)
 		}
 		store.Thumbnail = *thumbnail
 
-		// because user update the thumbnail
-		// then remove last thumbnail in cdn/stores/{file_name} to make folder clean
-		err = utils.RemoveImage(exists.Thumbnail)
-		if err != nil {
-			return err
+		if isExists && exists.Thumbnail != "" {
+			// because user update the thumbnail
+			// then remove last thumbnail in cdn/stores/{file_name} to make folder clean
+			_ = utils.RemoveImage(exists.Thumbnail)
 		}
 	}
 

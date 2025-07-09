@@ -28,11 +28,14 @@ type StoreUsecase interface {
 	UpdateStoreProductCategory(userID string, ID string, body storeschema.ProductCategoryPayload) error
 	DeleteStoreProductCategory(userID string, ID string) error
 	FindStoreProducts(c echo.Context, userID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
+	FindStoreProductsByStoreKey(c echo.Context, key string, params *commonschema.QueryParams, category_id *string) (*commonschema.ResponseList, error)
 	FindStoreProduct(c echo.Context, userID string, ID string) (*storeschema.ProductResponse, error)
 	CreateStoreProduct(userID string, body storeschema.ProductPayload) error
 	UpdateStoreProduct(userID string, ID string, body storeschema.ProductPayload) error
 	DeleteStoreProduct(userID string, ID string) error
 	FindStoreProductFormEntries(userID string, ID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
+	FindStoreByKey(c echo.Context, key string) (*storeschema.StoreResponse, error)
+	FindStoreCategoriesByKey(key string) ([]storeschema.ProductCategoryResponse, error)
 }
 
 type StoreService struct {
@@ -63,7 +66,7 @@ func (s *StoreService) findStore(userID string, returnOriginalError bool) (*stor
 		return nil, err
 	}
 
-	totalProducts, err := s.storeRepo.FindCountStoreProducts(data.ID.String(), nil)
+	totalProducts, err := s.storeRepo.FindCountStoreProducts(data.ID.String(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +98,34 @@ func (s *StoreService) FindStore(c echo.Context, userID string) (*storeschema.St
 	// generate image url
 	data.Thumbnail = utils.ServeImage(c, data.Thumbnail)
 	return data, nil
+}
+
+func (s *StoreService) FindStoreByKey(c echo.Context, key string) (*storeschema.StoreResponse, error) {
+	data, err := s.storeRepo.FindStoreByKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	store := storeschema.StoreResponse{
+		ID:              data.ID.String(),
+		Key:             data.Key,
+		Name:            data.Name,
+		Slug:            data.Slug,
+		Category:        data.Category,
+		Description:     data.Description,
+		Phone:           data.Phone,
+		Email:           data.Email,
+		Address:         data.Address,
+		OperationalHour: data.OperationalHour,
+		Thumbnail:       data.Thumbnail,
+		UpdatedAt:       data.UpdatedAt,
+		TotalCategories: 0,
+		TotalProducts:   0,
+	}
+
+	// generate image url
+	store.Thumbnail = utils.ServeImage(c, data.Thumbnail)
+	return &store, nil
 }
 
 func (s *StoreService) UpdateStore(userID string, body storeschema.StorePayload) error {
@@ -340,21 +371,15 @@ func (s *StoreService) DeleteStoreProductCategory(userID string, ID string) erro
 	return nil
 }
 
-func (s *StoreService) FindStoreProducts(c echo.Context, userID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
-	// check valid store
-	store, err := s.findStore(userID, false)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *StoreService) findStoreProducts(c echo.Context, storeID string, params *commonschema.QueryParams, category_id *string) (*commonschema.ResponseList, error) {
 	// perform to get product
-	list, err := s.storeRepo.FindStoreProducts(store.ID, params)
+	list, err := s.storeRepo.FindStoreProducts(storeID, params, category_id)
 	if err != nil {
 		return nil, err
 	}
 
 	// get count data
-	count, err := s.storeRepo.FindCountStoreProducts(store.ID, params)
+	count, err := s.storeRepo.FindCountStoreProducts(storeID, params, category_id)
 	if err != nil {
 		return nil, err
 	}
@@ -380,6 +405,15 @@ func (s *StoreService) FindStoreProducts(c echo.Context, userID string, params *
 			thumbnail = utils.ServeImage(c, thumbnail)
 		}
 
+		productImages := []storeschema.ProductImages{}
+		for _, j := range images {
+			productImageID := j.ID.String()
+			productImages = append(productImages, storeschema.ProductImages{
+				ID:       &productImageID,
+				FileName: utils.ServeImage(c, j.FileName),
+			})
+		}
+
 		d := storeschema.ProductResponse{
 			ID:          v.ID.String(),
 			StoreID:     v.StoreID.String(),
@@ -393,6 +427,7 @@ func (s *StoreService) FindStoreProducts(c echo.Context, userID string, params *
 			Status:      v.Status,
 			CreatedAt:   v.CreatedAt,
 			Thumbnail:   thumbnail,
+			Images:      productImages,
 			Category: storeschema.ProductCategoryResponse{
 				ID:          v.CategoryID.String(),
 				Name:        v.Category.Name,
@@ -431,6 +466,34 @@ func (s *StoreService) FindStoreProducts(c echo.Context, userID string, params *
 
 	// return success response
 	return &response, nil
+}
+
+func (s *StoreService) FindStoreProducts(c echo.Context, userID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
+	// check valid store
+	store, err := s.findStore(userID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := s.findStoreProducts(c, store.ID, params, nil)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+func (s *StoreService) FindStoreProductsByStoreKey(c echo.Context, key string, params *commonschema.QueryParams, category_id *string) (*commonschema.ResponseList, error) {
+	// check valid store
+	store, err := s.storeRepo.FindStoreByKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := s.findStoreProducts(c, store.ID.String(), params, category_id)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
 }
 
 func (s *StoreService) FindStoreProduct(c echo.Context, userID string, ID string) (*storeschema.ProductResponse, error) {
@@ -757,4 +820,29 @@ func (s *StoreService) FindStoreProductFormEntries(userID string, ID string, par
 
 	// return success response
 	return &response, nil
+}
+
+func (s *StoreService) FindStoreCategoriesByKey(key string) ([]storeschema.ProductCategoryResponse, error) {
+	store, err := s.storeRepo.FindStoreByKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := s.storeRepo.FindStoreProductCategories(store.ID.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var data []storeschema.ProductCategoryResponse
+	for _, v := range list {
+		data = append(data, storeschema.ProductCategoryResponse{
+			ID:            v.ID.String(),
+			Name:          v.Name,
+			Description:   v.Description,
+			CreatedAt:     v.CreatedAt,
+			TotalProducts: 0,
+		})
+	}
+
+	return data, nil
 }

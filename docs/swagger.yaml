@@ -1460,6 +1460,105 @@ paths:
       summary: List Form Entries
       tags:
       - Store - Products
+  /api/storepub/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Get store information by key
+      parameters:
+      - description: key of store you want to get
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Store Informations
+      tags:
+      - Public - Stores
+  /api/storepub/categories/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Get store categories
+      parameters:
+      - description: key of store you want to get
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Store Categories
+      tags:
+      - Public - Stores
+  /api/storepub/products/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Get store products
+      parameters:
+      - description: key of store you want to get
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      - description: category of product you want to get
+        in: query
+        name: category_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: Store Products
+      tags:
+      - Public - Stores
   /api/workspaces:
     get:
       consumes:

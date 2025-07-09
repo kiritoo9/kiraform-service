@@ -16,6 +16,7 @@ func Routes(e *echo.Echo, DB *gorm.DB) {
 	publicApi := e.Group("/api")
 	authroute.NewAuthHTTP(publicApi, DB)
 	masterroute.NewFormEntryHTTP(publicApi, DB)
+	storeroute.NewStorePublicHTTP(publicApi, DB)
 
 	// re-define /api for authorized endpoint
 	// then regist middleware

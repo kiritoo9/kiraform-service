@@ -11,6 +11,7 @@ import (
 
 type StoreRepository interface {
 	FindStoreByUser(userID string) (*models.Stores, error)
+	FindStoreByKey(key string) (*models.Stores, error)
 	CreateStore(data models.Stores) error
 	CreateStoreUser(data models.StoreUsers) error
 	UpdateStore(ID string, data models.Stores) error
@@ -19,8 +20,8 @@ type StoreRepository interface {
 	FindStoreProductCategory(storeID string, ID string) (*models.StoreProductCategories, error)
 	CreateStoreProductCategory(data models.StoreProductCategories) error
 	UpdateStoreProductCategory(userID string, data models.StoreProductCategories) error
-	FindStoreProducts(storeID string, params *commonschema.QueryParams) ([]models.StoreProducts, error)
-	FindCountStoreProducts(storeID string, params *commonschema.QueryParams) (int64, error)
+	FindStoreProducts(storeID string, params *commonschema.QueryParams, category_id *string) ([]models.StoreProducts, error)
+	FindCountStoreProducts(storeID string, params *commonschema.QueryParams, category_id *string) (int64, error)
 	FindCountStoreProductsByCategory(storeID string, storeProductCategoryID string) (int64, error)
 	FindStoreProduct(storeID string, ID string) (*models.StoreProducts, error)
 	CreateProduct(data models.StoreProducts) error
@@ -46,6 +47,16 @@ func (q *StoreQuery) FindStoreByUser(userID string) (*models.Stores, error) {
 	if err := q.DB.Model(&models.Stores{}).
 		Where("stores.deleted = ? AND store_users.deleted = ? AND store_users.user_id = ?", false, false, userID).
 		Joins("LEFT JOIN store_users ON stores.id = store_users.store_id AND store_users.deleted = ?", false).
+		First(&store).Error; err != nil {
+		return nil, err
+	}
+	return &store, nil
+}
+
+func (q *StoreQuery) FindStoreByKey(key string) (*models.Stores, error) {
+	var store models.Stores
+	if err := q.DB.Model(&models.Stores{}).
+		Where("stores.deleted = ? AND stores.key = ?", false, key).
 		First(&store).Error; err != nil {
 		return nil, err
 	}
@@ -80,17 +91,21 @@ func (q *StoreQuery) FindStoreProductCategories(storeID string, params *commonsc
 	st := q.DB.Model(&models.StoreProductCategories{}).Where("deleted = ? AND store_id = ?", false, storeID)
 
 	// handle search condition
-	if params.Search != "" {
+	if params != nil && params.Search != "" {
 		st = st.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(params.Search)+"%")
 	}
 
-	// handle pagination
-	offset := 0
-	if params.Limit > 0 && params.Page > 0 {
-		offset = (params.Limit * params.Page) - params.Limit
-	}
+	// handle order
 	st = st.Order("created_at DESC")
-	st = st.Limit(params.Limit).Offset(offset)
+
+	// handle pagination
+	if params != nil {
+		offset := 0
+		if params.Limit > 0 && params.Page > 0 {
+			offset = (params.Limit * params.Page) - params.Limit
+		}
+		st = st.Limit(params.Limit).Offset(offset)
+	}
 
 	// perform to get data
 	if err := st.Find(&data).Error; err != nil {
@@ -139,7 +154,7 @@ func (q *StoreQuery) UpdateStoreProductCategory(ID string, data models.StoreProd
 	return nil
 }
 
-func (q *StoreQuery) FindStoreProducts(storeID string, params *commonschema.QueryParams) ([]models.StoreProducts, error) {
+func (q *StoreQuery) FindStoreProducts(storeID string, params *commonschema.QueryParams, category_id *string) ([]models.StoreProducts, error) {
 	var data []models.StoreProducts
 
 	// init statement
@@ -148,18 +163,27 @@ func (q *StoreQuery) FindStoreProducts(storeID string, params *commonschema.Quer
 		Preload("Category").
 		Preload("Campaign")
 
+	// handle category filter
+	if category_id != nil && *category_id != "" {
+		st = st.Where("store_products.category_id = ?", category_id)
+	}
+
 	// handle search condition
-	if params.Search != "" {
+	if params != nil && params.Search != "" {
 		st = st.Where("LOWER(store_products.name) LIKE ?", "%"+strings.ToLower(params.Search)+"%")
 	}
 
-	// handle pagination
-	offset := 0
-	if params.Limit > 0 && params.Page > 0 {
-		offset = (params.Limit * params.Page) - params.Limit
-	}
+	// handle order
 	st = st.Order("store_products.created_at DESC")
-	st = st.Limit(params.Limit).Offset(offset)
+
+	// handle pagination
+	if params != nil {
+		offset := 0
+		if params.Limit > 0 && params.Page > 0 {
+			offset = (params.Limit * params.Page) - params.Limit
+		}
+		st = st.Limit(params.Limit).Offset(offset)
+	}
 
 	// perform to get data
 	if err := st.Find(&data).Error; err != nil {
@@ -168,11 +192,16 @@ func (q *StoreQuery) FindStoreProducts(storeID string, params *commonschema.Quer
 	return data, nil
 }
 
-func (q *StoreQuery) FindCountStoreProducts(storeID string, params *commonschema.QueryParams) (int64, error) {
+func (q *StoreQuery) FindCountStoreProducts(storeID string, params *commonschema.QueryParams, category_id *string) (int64, error) {
 	var count int64
 
 	// init statement
 	st := q.DB.Model(&models.StoreProducts{}).Where("deleted = ? AND store_id = ?", false, storeID)
+
+	// handle category filter
+	if category_id != nil && *category_id != "" {
+		st = st.Where("store_products.category_id = ?", category_id)
+	}
 
 	// handle search condition
 	if params != nil && params.Search != "" {

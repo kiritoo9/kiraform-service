@@ -726,10 +726,7 @@ func (s *StoreService) UpdateStoreProduct(userID string, ID string, body storesc
 				return err
 			}
 
-			err := utils.RemoveImage(v.FileName)
-			if err != nil {
-				return err
-			}
+			_ = utils.RemoveImage(v.FileName)
 		}
 	}
 

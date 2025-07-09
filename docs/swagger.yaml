@@ -764,6 +764,10 @@ paths:
         name: campaign_id
         required: true
         type: string
+      - description: Product ID
+        in: query
+        name: product_id
+        type: string
       - description: form entry payload
         in: body
         name: formEntryPayload
@@ -1413,6 +1417,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Update Product
+      tags:
+      - Store - Products
+  /api/store/products/form_entries/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get the list form entries of product
+      parameters:
+      - description: Page of list data
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Limitting data you want to get
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Find your data with keywords
+        in: query
+        name: search
+        type: string
+      - description: ID of your data
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request success
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+        "400":
+          description: Request failure
+          schema:
+            $ref: '#/definitions/commonschema.ResponseHTTP'
+      security:
+      - BearerAuth: []
+      summary: List Form Entries
       tags:
       - Store - Products
   /api/workspaces:

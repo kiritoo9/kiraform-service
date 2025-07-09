@@ -11,7 +11,7 @@ import (
 )
 
 type FormEntryUsecase interface {
-	EntryForm(campaignID string, userID *string, body []masterschema.FormEntryPayload) error
+	EntryForm(campaignID string, userID *string, body []masterschema.FormEntryPayload, productID *string) error
 	GetHistory(userID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
 	GetDetailHistory(userID string, ID string) (*masterschema.FormEntryResponse, error)
 }
@@ -26,7 +26,7 @@ func NewFormEntryUsecase(formEntryRepo masterrepo.FormEntryRepository) *FormEntr
 	}
 }
 
-func (s *FormEntryService) EntryForm(campaignID string, userID *string, body []masterschema.FormEntryPayload) error {
+func (s *FormEntryService) EntryForm(campaignID string, userID *string, body []masterschema.FormEntryPayload, productID *string) error {
 	UUIDcampaignID, err := uuid.Parse(campaignID)
 	if err != nil {
 		return err
@@ -47,6 +47,14 @@ func (s *FormEntryService) EntryForm(campaignID string, userID *string, body []m
 		CampaignID: UUIDcampaignID,
 		UserID:     UUIDuserID,
 		Status:     "S1", // static as pending
+	}
+
+	if productID != nil && *productID != "" {
+		UUIDproductID, err := uuid.Parse(*productID)
+		if err != nil {
+			return err
+		}
+		formEntry.ProductID = &UUIDproductID
 	}
 
 	var formDetailEntries []models.FormDetailEntries

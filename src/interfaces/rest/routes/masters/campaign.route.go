@@ -555,7 +555,7 @@ func (h *CampaignHandler) FindDetailFormEntry(c echo.Context) error {
 	}
 
 	// send to usecase to get data
-	data, err := h.Dependencies.UC.FindFormEntry(ID)
+	data, err := h.Dependencies.UC.FindFormEntry(c, ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())

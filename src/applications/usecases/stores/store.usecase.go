@@ -32,6 +32,7 @@ type StoreUsecase interface {
 	CreateStoreProduct(userID string, body storeschema.ProductPayload) error
 	UpdateStoreProduct(userID string, ID string, body storeschema.ProductPayload) error
 	DeleteStoreProduct(userID string, ID string) error
+	FindStoreProductFormEntries(userID string, ID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
 }
 
 type StoreService struct {
@@ -346,7 +347,7 @@ func (s *StoreService) FindStoreProducts(c echo.Context, userID string, params *
 		return nil, err
 	}
 
-	// perform to get product categories
+	// perform to get product
 	list, err := s.storeRepo.FindStoreProducts(store.ID, params)
 	if err != nil {
 		return nil, err
@@ -721,4 +722,39 @@ func (s *StoreService) DeleteStoreProduct(userID string, ID string) error {
 	// return success response
 	// by set as no-error
 	return nil
+}
+
+func (s *StoreService) FindStoreProductFormEntries(userID string, ID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error) {
+	// check valid store
+	_, err := s.findStore(userID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// perform to get form entries of prroduct
+	list, err := s.storeRepo.FindStoreProductFormEntries(ID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// get count data
+	count, err := s.storeRepo.FindCountStoreProductFormEntries(ID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// prepare response list
+	totalPage := 1
+	if count > 0 && params.Limit > 0 {
+		totalPage = int(math.Ceil(float64(count) / float64(params.Limit)))
+	}
+
+	response := commonschema.ResponseList{
+		Parameters: *params,
+		TotalPage:  totalPage,
+		Rows:       list,
+	}
+
+	// return success response
+	return &response, nil
 }

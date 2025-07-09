@@ -67,6 +67,8 @@ func (q *FormEntryQuery) FindFormEntries(userID string, params *commonschema.Que
 	// add orderby
 	if params.OrderBy != "" {
 		st = st.Order(params.OrderBy)
+	} else {
+		st = st.Order("form_entries.created_at DESC")
 	}
 
 	// add limit:offset

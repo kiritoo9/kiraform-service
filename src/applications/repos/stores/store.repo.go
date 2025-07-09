@@ -3,6 +3,7 @@ package storerepo
 import (
 	"kiraform/src/applications/models"
 	commonschema "kiraform/src/interfaces/rest/schemas/commons"
+	storeschema "kiraform/src/interfaces/rest/schemas/stores"
 	"strings"
 
 	"gorm.io/gorm"
@@ -27,6 +28,9 @@ type StoreRepository interface {
 	FindImagesByProduct(storeProductID string) ([]models.StoreProductImages, error)
 	UpdateStoreProduct(data models.StoreProducts, storeID string, ID string) error
 	DeleteProductImage(storeProductImageID string) error
+	FindStoreProductById(ID string) (*models.StoreProducts, error)
+	FindStoreProductFormEntries(productID string, params *commonschema.QueryParams) ([]storeschema.FormEntrySchema, error)
+	FindCountStoreProductFormEntries(productID string, params *commonschema.QueryParams) (int64, error)
 }
 
 type StoreQuery struct {
@@ -241,4 +245,67 @@ func (q *StoreQuery) DeleteProductImage(storeProductImageID string) error {
 		return err
 	}
 	return nil
+}
+
+func (q *StoreQuery) FindStoreProductById(ID string) (*models.StoreProducts, error) {
+	var data models.StoreProducts
+	if err := q.DB.Model(&models.StoreProducts{}).
+		Where("store_products.deleted = ? AND store_products.id = ?", false, ID).
+		Preload("Store").
+		Preload("Category").
+		Preload("Campaign").
+		First(&data).Error; err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
+
+func (q *StoreQuery) FindStoreProductFormEntries(productID string, params *commonschema.QueryParams) ([]storeschema.FormEntrySchema, error) {
+	var data []storeschema.FormEntrySchema
+
+	// init statement
+	st := q.DB.Model(&models.FormEntries{}).
+		Where("form_entries.deleted = ? AND form_entries.product_id = ?", false, productID).
+		Select("form_entries.*, campaigns.workspace_id, campaigns.title AS campaign_title, campaigns.description AS campaign_description, workspaces.title AS workspace_title, workspaces.description AS workspace_description").
+		Joins("LEFT JOIN campaigns ON campaigns.id = form_entries.campaign_id").
+		Joins("LEFT JOIN workspaces ON workspaces.id = campaigns.workspace_id")
+
+	// handle search condition
+	if params.Search != "" {
+		st = st.Where("LOWER(campaigns.title) LIKE ?", "%"+strings.ToLower(params.Search)+"%")
+	}
+
+	// handle pagination
+	offset := 0
+	if params.Limit > 0 && params.Page > 0 {
+		offset = (params.Limit * params.Page) - params.Limit
+	}
+	st = st.Order("created_at DESC")
+	st = st.Limit(params.Limit).Offset(offset)
+
+	// perform to get data
+	if err := st.Find(&data).Error; err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (q *StoreQuery) FindCountStoreProductFormEntries(productID string, params *commonschema.QueryParams) (int64, error) {
+	var count int64
+
+	// init statement
+	st := q.DB.Model(&models.FormEntries{}).
+		Where("form_entries.deleted = ? AND form_entries.product_id = ?", false, productID).
+		Joins("LEFT JOIN campaigns ON campaigns.id = form_entries.campaign_id")
+
+	// handle search condition
+	if params.Search != "" {
+		st = st.Where("LOWER(campaigns.title) LIKE ?", "%"+strings.ToLower(params.Search)+"%")
+	}
+
+	// perform to get data
+	if err := st.Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }

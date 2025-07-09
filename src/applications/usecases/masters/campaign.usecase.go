@@ -4,14 +4,17 @@ import (
 	"errors"
 	"kiraform/src/applications/models"
 	masterrepo "kiraform/src/applications/repos/masters"
+	storerepo "kiraform/src/applications/repos/stores"
 	commonschema "kiraform/src/interfaces/rest/schemas/commons"
 	masterschema "kiraform/src/interfaces/rest/schemas/masters"
+	"kiraform/src/utils"
 	"math"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -32,18 +35,20 @@ type CampaignUsecase interface {
 	DeleteCampaignSeo(campaignID string, ID string) error
 	FindSummaryEntriesByDate(workspaceID string, campaignID string) ([]masterschema.CampaignFormEntryChart, error)
 	FindFormEntries(workspaceID string, campaignID string, params *commonschema.QueryParams) (*commonschema.ResponseList, error)
-	FindFormEntry(ID string) (*masterschema.FormEntryResponse, error)
+	FindFormEntry(c echo.Context, ID string) (*masterschema.FormEntryResponse, error)
 }
 
 type CampaignService struct {
 	campaignRepo  masterrepo.CampaignRepository
 	workspaceRepo masterrepo.WorkspaceRepository
+	storeRepo     storerepo.StoreRepository
 }
 
-func NewCampaignUsecase(campaignRepo masterrepo.CampaignRepository, workspaceRepo masterrepo.WorkspaceRepository) *CampaignService {
+func NewCampaignUsecase(campaignRepo masterrepo.CampaignRepository, workspaceRepo masterrepo.WorkspaceRepository, storeRepo storerepo.StoreRepository) *CampaignService {
 	return &CampaignService{
 		campaignRepo:  campaignRepo,
 		workspaceRepo: workspaceRepo,
+		storeRepo:     storeRepo,
 	}
 }
 
@@ -574,7 +579,7 @@ func (s *CampaignService) FindFormEntries(workspaceID string, campaignID string,
 	return &response, nil
 }
 
-func (s *CampaignService) FindFormEntry(ID string) (*masterschema.FormEntryResponse, error) {
+func (s *CampaignService) FindFormEntry(c echo.Context, ID string) (*masterschema.FormEntryResponse, error) {
 	// get form entry header
 	formEntry, err := s.campaignRepo.FindFormEntry(ID)
 	if err != nil {
@@ -588,8 +593,58 @@ func (s *CampaignService) FindFormEntry(ID string) (*masterschema.FormEntryRespo
 	}
 
 	// prepare for response
-	return &masterschema.FormEntryResponse{
+	response := &masterschema.FormEntryResponse{
 		Header: *formEntry,
 		Detail: formDetailEntry,
-	}, nil
+	}
+
+	// get product if exists
+	if formEntry.ProductID != nil && *formEntry.ProductID != "" {
+		productID := formEntry.ProductID
+		product, err := s.storeRepo.FindStoreProductById(*productID)
+		if err != nil {
+			return nil, err
+		}
+
+		// generate url for thumbnail and entire images
+		thumbnail := ""
+		images, err := s.storeRepo.FindImagesByProduct(product.ID.String())
+		if err != nil {
+			return nil, err
+		} else if len(images) > 0 {
+			thumbnail = images[0].FileName
+		}
+
+		if thumbnail != "" {
+			thumbnail = utils.ServeImage(c, thumbnail)
+		}
+
+		var campaignID string
+		if product.CampaignID != nil {
+			campaignID = product.CampaignID.String()
+		}
+
+		productResponse := masterschema.ProductResponse{
+			ID:                  product.ID.String(),
+			StoreID:             product.StoreID.String(),
+			CategoryID:          product.CategoryID.String(),
+			CampaignID:          &campaignID,
+			Key:                 product.Key,
+			Slug:                product.Slug,
+			Name:                product.Name,
+			Description:         product.Description,
+			Price:               product.Price,
+			Status:              product.Status,
+			CreatedAt:           product.CreatedAt,
+			Thumbnail:           thumbnail,
+			CategoryName:        product.Category.Name,
+			CategoryDescription: product.Category.Description,
+			CampaignTitle:       product.Campaign.Title,
+			CampaignDescription: product.Campaign.Description,
+		}
+		response.Product = &productResponse
+	}
+
+	// send response
+	return response, nil
 }

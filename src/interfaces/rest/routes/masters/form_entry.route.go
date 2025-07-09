@@ -98,6 +98,7 @@ func (h *FormEntryHandler) PreviewForm(c echo.Context) error {
 // @Accept  	 json
 // @Produce  	 json
 // @Param 		 campaign_id path string true "Campaign ID"
+// @Param 		 product_id query string false "Product ID"
 // @Param        formEntryPayload  body      []masterschema.FormEntryPayload   true  "form entry payload"
 // @Success      200  {object} commonschema.ResponseHTTP "Request success"
 // @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
@@ -107,6 +108,7 @@ func (h *FormEntryHandler) EntryForm(c echo.Context) error {
 	campaignID := c.Param("campaign_id")
 	userID, _ := c.Get("user_id").(string)
 	var body []masterschema.FormEntryPayload
+	productID := c.QueryParam("product_id")
 
 	// validate body
 	if err := c.Bind(&body); err != nil {
@@ -120,7 +122,7 @@ func (h *FormEntryHandler) EntryForm(c echo.Context) error {
 	}
 
 	// send to usecase for business process
-	err := h.Dependencies.UC.EntryForm(campaignID, &userID, body)
+	err := h.Dependencies.UC.EntryForm(campaignID, &userID, body, &productID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}

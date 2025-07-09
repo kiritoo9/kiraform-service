@@ -47,6 +47,7 @@ func NewStoreHTTP(g *echo.Group, DB *gorm.DB) {
 	// define store product routes
 	sp := s.Group("/products")
 	sp.GET("", h.FindStoreProducts)
+	sp.GET("/form_entries/:id", h.FindStoreProductFormEntries)
 	sp.GET("/:id", h.FindStoreProduct)
 	sp.POST("", h.CreateStoreProduct)
 	sp.PUT("/:id", h.UpdateStoreProduct)
@@ -329,6 +330,42 @@ func (h *StoreHandler) FindStoreProducts(c echo.Context) error {
 
 	// get data from usecase
 	data, err := h.Dependencies.UC.FindStoreProducts(c, userID, params)
+	if err != nil {
+		return echo.NewHTTPError(response.Code, err.Error())
+	}
+
+	// send response
+	response.Code = http.StatusOK
+	response.Message = "Request success"
+	response.Data = data
+	return c.JSON(response.Code, response)
+}
+
+// @Security BearerAuth
+// @Summary      List Form Entries
+// @Description  Get the list form entries of product
+// @Tags         Store - Products
+// @Accept  	 json
+// @Produce  	 json
+// @Param 		 page query int true "Page of list data"
+// @Param 		 limit query int true "Limitting data you want to get"
+// @Param 		 search query string false "Find your data with keywords"
+// @Param 		 id path string true "ID of your data"
+// @Success      200  {object} commonschema.ResponseHTTP "Request success"
+// @Failure      400  {object} commonschema.ResponseHTTP "Request failure"
+// @Router       /api/store/products/form_entries/{id} [get]
+func (h *StoreHandler) FindStoreProductFormEntries(c echo.Context) error {
+	// prepare usable data
+	response := commonschema.ResponseHTTP{Code: http.StatusBadRequest}
+	ID := c.Param("id")
+	userID, _ := c.Get("user_id").(string)
+	if userID == "" {
+		return echo.NewHTTPError(http.StatusUnauthorized, errors.New("your token is not valid"))
+	}
+	params := utils.QParams(c)
+
+	// get data from usecase
+	data, err := h.Dependencies.UC.FindStoreProductFormEntries(userID, ID, params)
 	if err != nil {
 		return echo.NewHTTPError(response.Code, err.Error())
 	}

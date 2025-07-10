@@ -42,11 +42,12 @@ func (s *FormEntryService) EntryForm(campaignID string, userID *string, body []m
 	}
 
 	// preparing data
-	formEntry := models.FormEntries{
-		ID:         uuid.New(),
-		CampaignID: UUIDcampaignID,
-		UserID:     UUIDuserID,
-		Status:     "S1", // static as pending
+	formEntryID := uuid.New()
+	formEntry := map[string]any{
+		"id":          formEntryID,
+		"user_id":     UUIDuserID,
+		"campaign_id": UUIDcampaignID,
+		"status":      "S1", // static as pending
 	}
 
 	if productID != nil && *productID != "" {
@@ -54,7 +55,7 @@ func (s *FormEntryService) EntryForm(campaignID string, userID *string, body []m
 		if err != nil {
 			return err
 		}
-		formEntry.ProductID = &UUIDproductID
+		formEntry["product_id"] = &UUIDproductID
 	}
 
 	var formDetailEntries []models.FormDetailEntries
@@ -75,7 +76,7 @@ func (s *FormEntryService) EntryForm(campaignID string, userID *string, body []m
 
 		fde := models.FormDetailEntries{
 			ID:             uuid.New(),
-			FormEntryID:    formEntry.ID,
+			FormEntryID:    formEntryID,
 			CampaignFormID: UUIDcampaignFormID,
 			Value:          v.Value,
 		}

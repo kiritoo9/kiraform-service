@@ -10,7 +10,7 @@ import (
 )
 
 type FormEntryRepository interface {
-	EntryForm(formEntry models.FormEntries, formDetailEntries []models.FormDetailEntries) error
+	EntryForm(formEntry map[string]any, formDetailEntries []models.FormDetailEntries) error
 	FindFormEntries(userID string, params *commonschema.QueryParams) ([]masterschema.FormEntrySchema, error)
 	FindCountFormEntry(userID string, params *commonschema.QueryParams) (int64, error)
 	FindFormEntry(userID string, ID string) (*masterschema.FormEntrySchema, error)
@@ -25,10 +25,10 @@ func NewFormEntryRepository(DB *gorm.DB) *FormEntryQuery {
 	return &FormEntryQuery{DB: DB}
 }
 
-func (q *FormEntryQuery) EntryForm(formEntry models.FormEntries, formDetailEntries []models.FormDetailEntries) error {
+func (q *FormEntryQuery) EntryForm(formEntry map[string]any, formDetailEntries []models.FormDetailEntries) error {
 	err := q.DB.Transaction(func(tx *gorm.DB) error {
 		// insert form entry header
-		if err := tx.Create(&formEntry).Error; err != nil {
+		if err := tx.Model(&models.FormEntries{}).Create(&formEntry).Error; err != nil {
 			return err
 		}
 
